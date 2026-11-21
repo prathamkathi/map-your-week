@@ -30,12 +30,15 @@ const store = {
 };
 
 /* referral: ?r=CODE on arrival */
+// Codes this phone has already handed out (so opening your own link doesn't count as a referral)
+const OWN_REFS = (store.get('own_refs') || store.get('my_ref') || '').split(',').filter(Boolean);
 const rIn = (params.get('r') || '').trim().toUpperCase();
-if (/^[A-Z0-9]{4,10}$/.test(rIn)) store.set('ref_by', rIn);
-const REF_BY = store.get('ref_by') || '';
+if (/^[A-Z0-9]{4,10}$/.test(rIn) && !OWN_REFS.includes(rIn)) store.set('ref_by', rIn);
+const REF_BY = OWN_REFS.includes(store.get('ref_by') || '') ? '' : (store.get('ref_by') || '');
 const SESSION = rand(12);
-let MY_REF = store.get('my_ref');
-if (!/^[A-Z0-9]{6}$/.test(MY_REF || '')) MY_REF = rand(6);
+// A fresh code for every fill. Two people on one phone must never share a code,
+// because the Sheet updates the row that has the same code (that used to overwrite the first person).
+const MY_REF = rand(6);
 
 /* ───────── copy (final) ───────── */
 const AGE = {
@@ -554,7 +557,7 @@ let payload = null;
 function finish() {
   clock.stop();
   finalSecs = Math.max(1, Math.round(clock.read() / 1000));
-  store.set('my_ref', MY_REF);
+  if (!OWN_REFS.includes(MY_REF)) { OWN_REFS.push(MY_REF); store.set('own_refs', OWN_REFS.slice(-20).join(',')); }
   const sat = satOf();
   const yes = !!(CALL.find(c => c.v === A.call) || {}).yes;
   payload = {
