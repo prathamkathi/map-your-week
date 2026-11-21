@@ -1,0 +1,15 @@
+// ─────────────────────────────────────────────────────────────
+//  Settings for the "Map your week" form. Edit, save, re-upload.
+// ─────────────────────────────────────────────────────────────
+
+// Google Apps Script web app URL (see SETUP.md).
+// Empty = nothing is sent anywhere (answers only stay in this browser).
+const SCRIPT_URL = "";
+
+// Show the college leaderboard on the end screen.
+// Turn on after ~30 responses. Needs SCRIPT_URL.
+const LEADERBOARD = false;
+
+// The public link people share, e.g. "https://mapmyweek.netlify.app".
+// Empty = use whatever address the page is opened on.
+const SITE_URL = "https://prathamkathi.github.io/map-your-week";

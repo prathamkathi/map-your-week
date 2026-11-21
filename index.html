@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F4EEE4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14120F" media="(prefers-color-scheme: dark)">
+<title>Home, office, repeat? Let's map it 🗺️</title>
+<meta name="description" content="Under a minute. No spam, no sales pitch.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Home, office, repeat? Let's map it 🗺️">
+<meta property="og:description" content="Under a minute. No spam, no sales pitch.">
+<meta property="og:url" content="https://prathamkathi.github.io/map-your-week/">
+<meta property="og:image" content="https://prathamkathi.github.io/map-your-week/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Home, office, repeat? Let's map it.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🗺️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-screen="welcome">
+<div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<div class="shell">
+  <div class="app">
+    <header class="top" id="top" hidden>
+      <button class="back" id="back" type="button" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="prog" id="prog">
+        <div class="bar"><i id="bar"></i></div>
+        <span class="plabel" id="plabel"></span>
+      </div>
+      <span class="count" id="count"></span>
+    </header>
+    <div class="chipline" id="chipline" hidden><span class="chip" id="chip" role="status"></span></div>
+    <main class="stage" id="stage"></main>
+  </div>
+</div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
