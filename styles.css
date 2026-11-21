@@ -103,6 +103,7 @@ body[data-screen=welcome] .app{padding-bottom:max(20px,env(safe-area-inset-botto
 .wt em{font-style:italic;color:var(--accent)}
 .rule{height:1px;background:var(--line);margin:26px 0 0}
 .wl{font-size:17px;line-height:1.5;margin:18px 0 0;max-width:34ch}
+.wl b{font-weight:600;color:var(--ink)}
 .wl.sub{margin-top:12px;color:var(--ink);font-weight:500;opacity:1}
 .wl mark{color:var(--ink);font-weight:700;background:linear-gradient(transparent 50%,rgba(225,75,43,.24) 50%,rgba(225,75,43,.24) 94%,transparent 94%);padding:0 3px;margin:0 -1px;border-radius:2px}
 .btn .rocket{display:inline-block;transition:transform .45s cubic-bezier(.55,0,.8,.2),opacity .4s ease .05s}
@@ -191,8 +192,15 @@ body[data-screen=welcome] .app{padding-bottom:max(20px,env(safe-area-inset-botto
 .react{align-items:center;justify-content:center;text-align:center;padding:8px 0 84px;cursor:pointer;-webkit-user-select:none;user-select:none}
 .big{font-size:104px;line-height:1;min-width:1em;width:auto;height:1em;display:grid;justify-content:center;place-items:center;margin:0 auto 26px;animation:spring .7s var(--spring) both}
 .big .emo{display:block;line-height:1;white-space:nowrap}
-.emo-img{width:1em;height:1em;display:block;line-height:1;text-align:center}
-.emo-img{animation:fade .25s ease both}
+.emo-img,.emo-anim{width:1em;height:1em;display:block;line-height:1;text-align:center}
+.emo-anim svg{display:block;width:100%!important;height:100%!important}
+.emo[data-cp]{visibility:hidden}
+.om{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.2em;object-fit:contain;-webkit-user-drag:none;user-select:none}
+.big .om,.ph .om,.pin .om,.tile .te .om,.result .re .om{display:block;width:1em;height:1em;vertical-align:baseline}
+.pin .om{display:inline-block}
+.credit{font-size:11px;line-height:1.5;color:var(--muted);text-align:center;margin:0;padding:10px 22px calc(10px + env(safe-area-inset-bottom));opacity:.85}
+.credit a{text-decoration:underline;text-underline-offset:2px}
+.emo-img,.emo-anim{animation:fade .25s ease both}
 @keyframes spring{0%{opacity:0;transform:scale(.3)}55%{opacity:1;transform:scale(1.14)}78%{transform:scale(.95)}100%{transform:scale(1)}}
 .rh{font:500 32px/1.12 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance;overflow-wrap:anywhere;animation:fadeUp .45s var(--ease) .3s both;font-variation-settings:"opsz" 40}
 .rh .arr{color:var(--accent);font-style:italic;padding:0 .12em}
@@ -227,7 +235,7 @@ body[data-screen=welcome] .app{padding-bottom:max(20px,env(safe-area-inset-botto
 .polaroid::before{content:"";position:absolute;top:-11px;left:50%;width:76px;height:24px;margin-left:-38px;background:rgba(225,75,43,.28);rotate:3deg}
 .ph{aspect-ratio:1;border-radius:3px;background:linear-gradient(165deg,#FDE3D2 0%,#F6BFA6 55%,#EC8F7C 100%);display:grid;place-items:center;font-size:92px;overflow:hidden}
 .ph .emo{line-height:1;white-space:nowrap}
-.ph .emo-img{width:1em;height:1em;line-height:1}
+.ph .emo-img,.ph .emo-anim{width:1em;height:1em;line-height:1}
 .cap{font:600 30px/1.1 var(--hand);color:#2A2520;padding:12px 4px 16px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @keyframes drop{0%{opacity:0;transform:translate3d(0,-150px,0) rotate(-12deg)}55%{opacity:1;transform:translate3d(0,10px,0) rotate(2deg)}78%{transform:translate3d(0,-4px,0) rotate(-1deg)}100%{transform:none}}
 
@@ -272,3 +280,6 @@ body[data-screen=welcome] .app{padding-bottom:max(20px,env(safe-area-inset-botto
   .cd i{animation:cd var(--d,1600ms) linear forwards!important;animation-duration:var(--d,1600ms)!important}
   .opt.pop,.tile.pop .te,.chip.swap,.live.done .w,.shake{animation:none!important}
 }
+
+.credit{display:none}
+body[data-screen=welcome] .credit,body[data-screen=end] .credit{display:block}

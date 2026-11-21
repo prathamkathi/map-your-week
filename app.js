@@ -175,30 +175,76 @@ const shareLink = () => (CFG.site || (location.origin + location.pathname.replac
 const shortLink = () => shareLink().replace(/^https?:\/\//, '');
 const ICON_ARROW = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
-/* animated Noto emoji: static emoji first, swap in the animation once it has loaded */
-// Moving (Google Noto) emojis are OFF: they need a credit line on the page. Normal emojis are used everywhere.
-// To turn them back on: set true AND add a credit line ("Animated emoji: Noto Emoji by Google, CC BY 4.0").
-const ANIMATED_EMOJI = false;
-const imgCache = new Map();
-const EMOJI_URL = cp => `https://fonts.gstatic.com/s/e/notoemoji/latest/${cp}/512.webp`;
-function loadEmoji(cp) {
-  if (!ANIMATED_EMOJI || !cp || reduced()) return null;
-  if (!imgCache.has(cp)) {
-    const p = new Promise((res, rej) => { const i = new Image(); i.decoding = 'async'; i.onload = () => res(i.src); i.onerror = rej; i.src = EMOJI_URL(cp); });
-    p.catch(() => {});
-    imgCache.set(cp, p);
-  }
-  return imgCache.get(cp);
+/* emoji look: OpenMoji (static, outline style) everywhere, Google Noto animated on the big reaction emoji.
+   Credit line for both is in the page footer (OpenMoji CC BY-SA 4.0, Noto Emoji CC BY 4.0). */
+const ANIMATED_EMOJI = true;
+// files live in site/emoji/ (downloaded once, free): om = OpenMoji SVGs, noto = Noto animated (Lottie JSON)
+const OM_URL = hex => `emoji/om/${hex}.svg`;
+const EMOJI_URL = cp => `emoji/noto/${cp}.json`;
+const NOTO_HAVE = new Set('1f31f 1f33f 1f389 1f3c6 1f44b 1f49b 1f525 1f60e 1f634 1f64c 1f917 1f929 1f95e 1f973 1f979 1f9e0 1faa9'.split(' '));
+const EMO_ONE = /(?:\p{Regional_Indicator}{2}|\p{Extended_Pictographic}(?:️|[\u{1F3FB}-\u{1F3FF}])?(?:‍\p{Extended_Pictographic}(?:️|[\u{1F3FB}-\u{1F3FF}])?)*)/gu;
+const EMO_HAS = new RegExp(EMO_ONE.source, 'u');
+const hexOf = (ch, keepVS) => [...ch].map(c => c.codePointAt(0)).filter(c => keepVS || c !== 0xfe0f).map(c => c.toString(16).toUpperCase()).join('-');
+function omImg(ch) {
+  const img = new Image();
+  img.className = 'om'; img.alt = ch; img.draggable = false; img.decoding = 'async';
+  img.onerror = () => img.replaceWith(document.createTextNode(ch));   // not in our set: the phone's own emoji
+  img.src = OM_URL(hexOf(ch, false));
+  return img;
 }
+function skin(root) {
+  const nodes = [];
+  if (root.nodeType === 3) nodes.push(root);
+  else if (root.nodeType === 1) { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) nodes.push(n); }
+  nodes.forEach(n => {
+    const t = n.nodeValue;
+    if (!t || !EMO_HAS.test(t) || !n.parentElement || n.parentElement.closest('script,style,textarea,input,[data-cp]')) return;
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    for (const m of t.matchAll(EMO_ONE)) {
+      if (m.index > last) frag.append(t.slice(last, m.index));
+      frag.append(omImg(m[0]));
+      last = m.index + m[0].length;
+    }
+    if (last < t.length) frag.append(t.slice(last));
+    n.replaceWith(frag);
+  });
+}
+new MutationObserver(recs => recs.forEach(r => {
+  r.addedNodes.forEach(n => skin(n));
+  if (r.type === 'characterData') skin(r.target);
+})).observe(document.body, { childList: true, subtree: true, characterData: true });
+
+/* big reaction emoji: Google's Noto animation (small Lottie file + lottie player); if slow or missing, the OpenMoji one */
+const animCache = new Map();
+function loadEmoji(cp) {
+  if (!ANIMATED_EMOJI || !cp || !NOTO_HAVE.has(cp) || reduced()) return null;
+  if (!animCache.has(cp)) {
+    const p = fetch(EMOJI_URL(cp)).then(r => { if (!r.ok) throw 0; return r.json(); });
+    p.catch(() => {});
+    animCache.set(cp, p);
+  }
+  return animCache.get(cp);
+}
+const lottieReady = () => new Promise((res, rej) => {
+  const t0 = Date.now();
+  (function wait() { if (window.lottie) res(window.lottie); else if (Date.now() - t0 > 2500) rej(); else setTimeout(wait, 60); })();
+});
+let anims = [];
 function animoji(scope) {
+  anims = anims.filter(a => { if (a.wrapper && a.wrapper.isConnected) return true; a.destroy(); return false; });   // stop ones that left the screen
   scope.querySelectorAll('.emo[data-cp]').forEach(span => {
     const p = loadEmoji(span.dataset.cp);
-    if (!p) return;
-    p.then(src => {
-      if (!span.isConnected) return;
-      const img = new Image(); img.className = 'emo-img'; img.alt = span.textContent; img.src = src; img.draggable = false;
-      span.replaceWith(img);
-    }, () => {});
+    const fallback = () => { if (span.dataset.cp) { delete span.dataset.cp; skin(span); } };
+    if (!p) { fallback(); return; }
+    const timer = setTimeout(fallback, 3000);
+    Promise.all([p, lottieReady()]).then(([data, lottie]) => {
+      clearTimeout(timer);
+      if (!span.isConnected || !span.dataset.cp) return;
+      const box = document.createElement('span'); box.className = 'emo-anim'; box.setAttribute('role', 'img'); box.setAttribute('aria-label', span.getAttribute('aria-label') || '');
+      span.replaceWith(box);
+      anims.push(lottie.loadAnimation({ container: box, renderer: 'svg', loop: true, autoplay: true, animationData: data, rendererSettings: { preserveAspectRatio: 'xMidYMid meet' } }));
+    }, () => { clearTimeout(timer); fallback(); });
   });
 }
 const emo = (e, cp) => `<span class="emo"${ANIMATED_EMOJI && cp && !reduced() ? ` data-cp="${cp}"` : ''} role="img" aria-label="${esc(e)}">${e}</span>`;
@@ -255,7 +301,7 @@ function viewWelcome() {
       <div class="pin" aria-hidden="true">🗺️</div>
       <h1 class="wt" tabindex="-1">Home, office, repeat? <em>Let's map&nbsp;it.</em></h1>
       <div class="rule"></div>
-      <p class="wl">Hi, I'm Pratham from IIT&nbsp;Delhi&nbsp;👋<br>I'm mapping where young grads in NCR live and&nbsp;work.</p>
+      <p class="wl">Hi, I'm <b>Pratham</b> from <b>IIT&nbsp;Delhi</b>&nbsp;👋<br>I'm mapping where young grads in NCR live and&nbsp;work.</p>
       <p class="wl sub"><mark>Under a minute.</mark> No spam, no sales pitch. Pinky&nbsp;promise&nbsp;🤙</p>
     </div>
     <div class="foot"><button class="btn" type="button" id="start"><span>Let's do this</span><span class="rocket" aria-hidden="true">🚀</span></button></div>`;
@@ -697,4 +743,9 @@ window.__mapweek = Object.freeze({
 
 /* boot */
 go('welcome');
+// warm up the animated reaction emojis in the background so they are ready when a reaction screen opens
+setTimeout(() => {
+  [...new Set(['1f44b', '1f979', '1f49b', '1f389', ...Object.values(AGE).map(a => a.cp), ...SAT.map(s => s.r.cp), SAT_CUSTOM.r.cp, ...CALL.map(c => c.r.cp)])]
+    .forEach(cp => loadEmoji(cp));
+}, 1200);
 })();
