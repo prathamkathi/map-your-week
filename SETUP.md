@@ -14,7 +14,7 @@ Right now the form sends nothing (`SCRIPT_URL = ""` in `config.js`). Every finis
 
 ## Later
 
-- **College leaderboard:** after about 30 responses, set `LEADERBOARD = true` in `config.js`. The end screen then reads college counts from the same web app (counts only, never names or numbers). If the call fails, the block just stays hidden.
+- **College leaderboard:** when Pratham gives the signal, set `LEADERBOARD = true` in `config.js`. The end screen then reads college counts from the same web app (counts only, never names or numbers). If the call fails, the block just stays hidden.
 - **Changed the script?** Use **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**. This keeps the same URL.
 - **Referrals tab:** `referred_by_code` counts responses that came from each person's link, `referrer_name` shows who owns that code, and `sees_map_first` says "yes" at 2 or more.
 - **Map contacts:** if someone adds a WhatsApp number on the end screen, it lands in the `map_contact` column of their row (matched by their `my_ref_code`).

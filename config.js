@@ -7,7 +7,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3zUfy2g3IrUqz4_oxlwYHzBhZpSFVWXS8FxUsK5kk9yn95vuPuJNsltRmKxiM6Y6X/exec";
 
 // Show the college leaderboard on the end screen.
-// Turn on after ~30 responses. Needs SCRIPT_URL.
+// Turn on only when Pratham says so. Needs SCRIPT_URL.
 const LEADERBOARD = false;
 
 // The public link people share, e.g. "https://mapmyweek.netlify.app".
