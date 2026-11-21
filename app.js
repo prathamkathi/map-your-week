@@ -329,6 +329,7 @@ function viewWelcome() {
   startBtn.addEventListener('click', () => {
     if (startBtn.classList.contains('launch')) return;
     if (!stepsSent.has(0)) { stepsSent.add(0); event('start'); }
+    warmUp();
     startBtn.classList.add('launch');                       // rocket takes off, then the first question
     setTimeout(() => { hist.push('name'); go('name'); }, reduced() ? 0 : 420);
   });
@@ -775,9 +776,15 @@ window.__mapweek = Object.freeze({
 
 /* boot */
 go('welcome');
-// warm up the animated reaction emojis in the background so they are ready when a reaction screen opens
-setTimeout(() => {
-  [...new Set(['1f44b', '1f979', '1f49b', '1f389', ...Object.values(AGE).map(a => a.cp), ...SAT.map(s => s.r.cp), SAT_CUSTOM.r.cp, ...CALL.map(c => c.r.cp)])]
-    .forEach(cp => loadEmoji(cp));
-}, 1200);
+// once they tap Start: load the animation player and warm up the reaction emojis
+// (not before, so someone who only looks at the welcome page downloads far less)
+let warmed = false;
+function warmUp() {
+  if (warmed) return; warmed = true;
+  if (ANIMATED_EMOJI && !reduced()) { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie_light.min.js'; sc.async = true; document.head.append(sc); }
+  setTimeout(() => {
+    [...new Set(['1f44b', '1f979', '1f49b', '1f389', ...Object.values(AGE).map(a => a.cp), ...SAT.map(s => s.r.cp), SAT_CUSTOM.r.cp, ...CALL.map(c => c.r.cp)])]
+      .forEach(cp => loadEmoji(cp));
+  }, 1200);
+}
 })();
