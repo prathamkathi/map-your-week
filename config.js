@@ -4,7 +4,7 @@
 
 // Google Apps Script web app URL (see SETUP.md).
 // Empty = nothing is sent anywhere (answers only stay in this browser).
-const SCRIPT_URL = "";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3zUfy2g3IrUqz4_oxlwYHzBhZpSFVWXS8FxUsK5kk9yn95vuPuJNsltRmKxiM6Y6X/exec";
 
 // Show the college leaderboard on the end screen.
 // Turn on after ~30 responses. Needs SCRIPT_URL.
