@@ -12,7 +12,6 @@ A one-question-at-a-time form that maps where young grads in Delhi NCR live and 
 | `apps_script.gs` | Code to paste into Google Apps Script so answers land in a Google Sheet |
 | `SETUP.md` | 5 steps to connect the Google Sheet |
 | `og-image.png` | The picture shown when the link is pasted on WhatsApp |
-| `HANDOVER.md` | Full context for whoever (or whichever chat) works on this next |
 
 ## How to edit
 - **Change any question text, option or reaction:** edit `app.js`. Search for the text you want to change.
@@ -20,4 +19,4 @@ A one-question-at-a-time form that maps where young grads in Delhi NCR live and 
 - On github.com you can open a file, click the ✏️ pencil, edit, and press **Commit changes**. The live site updates on its own in about 1 minute.
 
 ## Live link
-See `HANDOVER.md`.
+https://prathamkathi.github.io/map-your-week/
