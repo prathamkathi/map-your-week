@@ -11,9 +11,12 @@
 
 const RESPONSE_HEADERS = [
   'timestamp', 'name', 'home', 'office', 'college', 'gender', 'age', 'saturday', 'saturday_type',
-  'call', 'phone', 'seconds_on_clock', 'my_ref_code', 'referred_by_code', 'map_contact', 'device', 'session_id'
+  'call', 'phone', 'seconds_on_clock', 'my_ref_code', 'referred_by_code', 'map_contact', 'device', 'session_id', 'test'
 ];
-const EVENT_HEADERS = ['timestamp', 'session_id', 'event', 'referred_by_code', 'device'];
+// TEST_MODE = true  -> every new row is flagged "TEST" in the last column.
+// Set to false (and re-deploy) when real responses should start.
+const TEST_MODE = true;
+const EVENT_HEADERS = ['timestamp', 'session_id', 'event', 'referred_by_code', 'device', 'test'];
 
 /* ---------- receive data from the form ---------- */
 function doPost(e) {
@@ -59,7 +62,7 @@ function doGet(e) {
 /* ---------- helpers ---------- */
 function addEvent_(d) {
   const sh = sheet_('Events', EVENT_HEADERS);
-  sh.appendRow(EVENT_HEADERS.map(function (h) { return h === 'timestamp' ? new Date() : clean_(d[h]); }));
+  sh.appendRow(EVENT_HEADERS.map(function (h) { return h === 'timestamp' ? new Date() : h === 'test' ? (TEST_MODE ? 'TEST' : '') : clean_(d[h]); }));
 }
 
 function upsertResponse_(d) {
@@ -67,6 +70,7 @@ function upsertResponse_(d) {
   ensureReferrals_();
   const row = RESPONSE_HEADERS.map(function (h) {
     if (h === 'timestamp') return new Date();
+    if (h === 'test') return TEST_MODE ? 'TEST' : '';
     if (h === 'seconds_on_clock') return Number(d[h]) || '';
     return clean_(d[h]);
   });
