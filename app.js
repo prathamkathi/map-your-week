@@ -156,6 +156,11 @@ const event = name => post({ type: 'event', event: name, session_id: SESSION, re
 /* ───────── helpers ───────── */
 const area = s => (String(s).split(',')[0] || '').trim() || String(s).trim();
 const disp = s => { s = String(s).trim(); return s.charAt(0).toUpperCase() + s.slice(1); };
+// Places: capitalise the first letter of every word ("sector 56, gurgaon" → "Sector 56, Gurgaon"); existing capitals stay (DLF, WFH)
+const CAPS = new Set(['wfh', 'dlf', 'ncr', 'mg', 'huda', 'dda', 'iffco', 'iit', 'du', 'gk', 'jnu', 'cp', 'nit', 'iiit', 'dtu', 'nsut', 'ip', 'sez', 'it', 'bkc', 'ggn', 'blr']);
+const placeCase = s => String(s).trim().replace(/\s+/g, ' ')
+  .replace(/(^|[\s,\-\/(])(\p{Ll})/gu, (m, p, c) => p + c.toUpperCase())
+  .replace(/\p{L}+/gu, w => CAPS.has(w.toLowerCase()) ? w.toUpperCase() : w);
 const isWFH = s => /\b(wfh|remote(ly)?|work(ing)?\s*from\s*home|from\s*home|home\s*office)\b/i.test(s);
 const digits = s => (String(s).match(/\d/g) || []).length;
 const buzz = () => { try { if (/Android/i.test(navigator.userAgent) && navigator.vibrate) navigator.vibrate(10); } catch (e) { /* ignore */ } };
@@ -284,7 +289,9 @@ function viewQuestion(id) {
       if (!v) return fieldError(form, input, T.empty);
       if (d.kind === 'tel' && digits(v) < 10) return fieldError(form, input, T.short);
       locked = true; input.blur();
-      answer(id, v);
+      const val = id === 'home' || id === 'office' ? placeCase(v) : v;   // saved and shown capitalised
+      input.value = val;
+      answer(id, val);
     });
     focusLater(input);
     if (id === 'name') loadEmoji('1f44b');
