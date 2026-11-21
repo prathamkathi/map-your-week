@@ -69,7 +69,7 @@ const SAT_OTHER = 'Something else';
 const SAT_CUSTOM = { e: '✨', defaultType: 'Original Weekender', r: { e: '🤩', cp: '1f929', h: "Now that's a Saturday.", s: 'Your own thing. Love that' } };
 const ORDER = ['name', 'home', 'office', 'college', 'gender', 'age', 'saturday', 'call', 'phone'];
 const Q = {
-  name: { n: 1, kind: 'text', q: 'First things first:\nwhat should I call you? 🙋', ph: 'Your first name', ac: 'given-name', max: 40, live: true, cap: 'words' },
+  name: { n: 1, kind: 'text', q: 'First things first:\nwhat should I call you? 🙋', ph: 'Your name', ac: 'name', max: 40, live: true, cap: 'words' },
   home: { n: 2, kind: 'text', q: 'Which area do you call home? 🏡', help: 'Sector or locality + city. Like Sector\u00A056, Gurgaon', ac: 'off', max: 80, cap: 'words' },
   office: { n: 3, kind: 'text', q: 'And where does the 9-to-5 (or\u00A09-to-9) happen? 💼', help: 'Office area + city. Or just type "WFH"', ac: 'off', max: 80, cap: 'words' },
   college: { n: 4, kind: 'choice', clock: true, grid: true, q: 'Where did you do your undergrad? 🎓', opts: ['IIT Delhi', 'Other IIT', 'DU', 'DTU', 'NSUT', 'IIIT Delhi', OTHER] },
@@ -77,11 +77,14 @@ const Q = {
   age: { n: 6, kind: 'choice', clock: true, q: 'And your age? 🎂', opts: Object.keys(AGE) },
   saturday: { n: 7, kind: 'tiles', clock: true, q: 'Be honest:\nyour ideal Saturday looks like… 😌', opts: [...SAT.map(s => s.l), SAT_OTHER] },
   call: { n: 8, kind: 'choice', q: 'Last real question:\ncan I borrow 10\u00A0minutes to hear about your weekends? 🎉', help: 'Just a phone call 📞 No sales, and we stop whenever you want.', opts: CALL.map(c => c.v) },
-  phone: { n: 9, kind: 'tel', q: 'Where can I reach you? 📱', help: 'Only for this call. Only we see it. No spam 🤞', ac: 'tel', max: 20 }
+  phone: { n: 9, kind: 'tel', q: 'Where can I reach you? 📱', help: 'Only for this call. Only we see it. No spam 🤞', ph: '10-digit mobile number', ac: 'tel', max: 16 }
 };
 const T = {
   empty: 'Type an answer to continue',
   short: "That number looks short. 10 digits, please",
+  long: "That's a few digits too many. Just your 10-digit mobile number",
+  phoneStart: 'Mobile numbers start with 6, 7, 8 or 9',
+  phoneBad: "That number doesn't look right",
   paused: '⏸️ Clock paused. Take your time',
   ticking: "⏱️ Clock's ticking",
   progress: n => n <= 3 ? 'Just getting started' : n <= 6 ? 'Halfway there ☕' : 'Almost there'
@@ -165,6 +168,23 @@ const placeCase = s => String(s).trim().replace(/\s+/g, ' ')
   .replace(/\p{L}+/gu, w => CAPS.has(w.toLowerCase()) ? w.toUpperCase() : w);
 const isWFH = s => /\b(wfh|remote(ly)?|work(ing)?\s*from\s*home|from\s*home|home\s*office)\b/i.test(s);
 const digits = s => (String(s).match(/\d/g) || []).length;
+/* phone: Indian mobile (10 digits, starts 6–9; +91 / 91 / 0 in front is fine). A number with another + country code is allowed too. */
+function phoneCheck(raw) {
+  const v = String(raw).trim(), d = v.replace(/\D/g, '');
+  if (!d) return { err: T.empty };
+  let m = d;
+  if (v.startsWith('+') && !v.startsWith('+91')) return d.length >= 8 && d.length <= 15 ? { ok: '+' + d } : { err: T.phoneBad };
+  if (m.length === 12 && m.startsWith('91')) m = m.slice(2);
+  else if (m.length === 11 && m.startsWith('0')) m = m.slice(1);
+  if (m.length < 10) return { err: T.short };
+  if (m.length > 10) return { err: T.long };
+  if (!/^[6-9]/.test(m)) return { err: T.phoneStart };
+  return { ok: '+91 ' + m.slice(0, 5) + ' ' + m.slice(5) };
+}
+const phoneTyping = input => input.addEventListener('input', () => {   // only digits, spaces, - and a leading +
+  const c = input.value.replace(/[^\d+\- ]/g, '').replace(/(?!^)\+/g, '');
+  if (c !== input.value) input.value = c;
+});
 const buzz = () => { try { if (/Android/i.test(navigator.userAgent) && navigator.vibrate) navigator.vibrate(10); } catch (e) { /* ignore */ } };
 const cleanType = t => { t = String(t || '').trim().replace(/^(i'?m\s+)?(a|an)\s+/i, ''); return t.replace(/(^|\s)(\S)/g, (m, sp, ch) => sp + ch.toUpperCase()); };
 const satOf = () => SAT.find(s => s.l === A.saturday)
@@ -198,7 +218,7 @@ function skin(root) {
   else if (root.nodeType === 1) { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) nodes.push(n); }
   nodes.forEach(n => {
     const t = n.nodeValue;
-    if (!t || !EMO_HAS.test(t) || !n.parentElement || n.parentElement.closest('script,style,textarea,input,[data-cp]')) return;
+    if (!t || !EMO_HAS.test(t) || !n.parentElement || n.parentElement.closest('script,style,textarea,input,[data-cp],.pin')) return;
     const frag = document.createDocumentFragment();
     let last = 0;
     for (const m of t.matchAll(EMO_ONE)) {
@@ -301,7 +321,7 @@ function viewWelcome() {
       <div class="pin" aria-hidden="true">🗺️</div>
       <h1 class="wt" tabindex="-1">Home, office, repeat? <em>Let's map&nbsp;it.</em></h1>
       <div class="rule"></div>
-      <p class="wl">Hi, I'm <b>Pratham</b> from <b>IIT&nbsp;Delhi</b>&nbsp;👋<br>I'm mapping where young grads in NCR live and&nbsp;work.</p>
+      <p class="wl">Hi, I'm <b>Pratham</b> from <b>IIT&nbsp;Delhi</b>&nbsp;👋<br>I'm mapping where young grads in <span class="nb">Delhi-NCR</span><br>live and&nbsp;work.</p>
       <p class="wl sub"><mark>Under a minute.</mark> No spam, no sales pitch. Pinky&nbsp;promise&nbsp;🤙</p>
     </div>
     <div class="foot"><button class="btn" type="button" id="start"><span>Let's do this</span><span class="rocket" aria-hidden="true">🚀</span></button></div>`;
@@ -330,14 +350,16 @@ function viewQuestion(id) {
       ${textForm({ type: d.kind === 'tel' ? 'tel' : 'text', ph: d.ph, ac: d.ac, max: d.max, cap: d.cap, val, label: 'qh', help: d.help ? 'qhelp' : '' })}`;
     const form = $('form', s), input = $('input', s);
     if (d.live) liveName(input, $('.live', s));
+    if (d.kind === 'tel') phoneTyping(input);
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (locked) return;
       const v = input.value.trim();
       if (!v) return fieldError(form, input, T.empty);
-      if (d.kind === 'tel' && digits(v) < 10) return fieldError(form, input, T.short);
+      let ph = null;
+      if (d.kind === 'tel') { const r = phoneCheck(v); if (r.err) return fieldError(form, input, r.err); ph = r.ok; }
       locked = true; input.blur();
-      const val = id === 'home' || id === 'office' ? placeCase(v) : v;   // saved and shown capitalised
+      const val = ph || (id === 'home' || id === 'office' ? placeCase(v) : v);   // saved and shown capitalised; phone saved as +91 98765 43210
       input.value = val;
       answer(id, val);
     });
@@ -584,13 +606,35 @@ function driveRoute(s) {
   requestAnimationFrame(step);
 }
 
-/* keyboard: A–F picks an option, Enter/Space/→ skips a reaction */
+/* keyboard: A–F picks an option, Enter/Space/→ skips a reaction,
+   ← goes back, → goes forward with the answer already given, ↑/↓ move between options */
 document.addEventListener('keydown', e => {
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
   const t = e.target, typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA');
+  const scr = $('.screen:not(.leave)', stage);
   if (inReaction) {
     if (t && t.tagName === 'BUTTON' && t.id === 'back') return;
-    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') { e.preventDefault(); $('.screen:not(.leave) .tapc', stage)?.click(); }
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') { e.preventDefault(); $('.tapc', scr)?.click(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); back(); }
+    return;
+  }
+  if (cur === 'end') return;
+  if (cur === 'welcome') { if (e.key === 'ArrowRight') { e.preventDefault(); $('#start')?.click(); } return; }
+  // in a text box the arrows move the cursor, unless the box is empty
+  const empty = typing && !t.value;
+  if (e.key === 'ArrowLeft' && (!typing || empty)) { e.preventDefault(); back(); return; }
+  if (e.key === 'ArrowRight' && (!typing || empty)) {
+    if (!A[cur]) return;                                   // nothing answered yet: stay
+    e.preventDefault();
+    const on = $('.opt[aria-pressed="true"]', scr);
+    if (on) on.click(); else $('form.tform', scr)?.requestSubmit();
+    return;
+  }
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !typing) {
+    const opts = [...scr.querySelectorAll('.opt')]; if (!opts.length) return;
+    e.preventDefault();
+    const i = opts.indexOf(document.activeElement), step = e.key === 'ArrowDown' ? 1 : -1;
+    opts[i < 0 ? (step > 0 ? 0 : opts.length - 1) : (i + step + opts.length) % opts.length].focus();
     return;
   }
   if (typing || !/^[a-i]$/i.test(e.key)) return;
@@ -624,7 +668,6 @@ function viewEnd() {
   const s = section('end', 'end');
   const yes = !!(CALL.find(c => c.v === A.call) || {}).yes;
   const name = esc(disp(A.name));
-  const gotPhone = yes && A.phone;
   if (!yes) {
     s.innerHTML = `
     <div class="big">${emo('💛', '1f49b')}</div>
@@ -635,31 +678,20 @@ function viewEnd() {
   s.innerHTML = `
     <div class="big">${emo('🎉', '1f389')}</div>
     <h1 class="eh" tabindex="-1"><span class="sec">${reduced() ? finalSecs : 0}</span> ${secWord(finalSecs)} on the clock, ${name}!&nbsp;🎉</h1>
-    <p class="es">${esc(nice("Faster than a Gurgaon signal 🚦 (we paused it while you typed)"))}</p>
+    <p class="es">${esc(nice("Faster than a Gurgaon signal 🚦"))}<br>${esc(nice("(we paused it while you typed)"))}</p>
     <p class="es2">${esc(nice(yes ? "I'll text you soon to find a time that suits you 🗓️" : "That's a wrap. Hope your weekend's a good one 🌈"))}</p>
     <div class="result"><span class="re" aria-hidden="true">${satOf().e}</span><div><p class="rt">${esc(satOf().type)}</p><p class="rl">${esc(nice(satOf().line))}</p></div></div>
+    <div class="build"><p class="b1">${esc(nice("I'm building better weekends for young grads in Delhi-NCR 🛠️"))}</p><p><span class="ln">${esc(nice("Every friend who fills this from your link helps shape it."))}</span><span class="ln">${esc(nice("Top sharers hear about it first."))}</span></p></div>
     <div class="share">
-      <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">Challenge them on WhatsApp</a>
+      <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">${esc(nice('Bring your friends in 🗺️'))}</a>
     </div>
     <section class="lb" id="lb" hidden></section>
-    <div class="mapf">
-      <p>${esc(nice("The final map of where NCR's young grads live and work drops soon 🗺️ 2 friends fill it from your link = you see it before anyone else."))}</p>
-      ${gotPhone ? `<p class="ok">I'll send it to your number 📱</p>` : `
-      <form class="tform" id="mapForm" novalidate>
-        <label for="mapIn">Where should I send it? (WhatsApp number)</label>
-        <p class="help" id="mapHelp">Only for the map. Nothing else.</p>
-        <input class="field" id="mapIn" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" aria-describedby="mapHelp" enterkeyhint="send">
-        <p class="err" role="alert"></p>
-        <div class="row"><button class="go" type="submit" aria-label="Save number">${ICON_ARROW}</button><span class="hint">or press <kbd>Enter ↵</kbd></span></div>
-      </form>`}
-    </div>
-    <p class="madad">${esc(nice("Know someone new to Gurgaon? Send it their way. It might help them find their people 🤝"))}</p>`;
+    <p class="madad">${esc(nice("Know someone new to Gurgaon?"))}<br>${esc(nice("Send it their way."))}<br>${esc(nice("It might help them find their people 🤝"))}</p>`;
   return s;
 }
 
 function waText() {
-  const sat = satOf();
-  return `Just mapped my week in ${finalSecs} ${secWord(finalSecs)} 🗺️ I'm ${an(sat.type)} ${sat.type} ${sat.e}. Bet you can't beat my time 👀 ${shareLink()}?r=${MY_REF}`;
+  return `Mapped my week in ${finalSecs} ${secWord(finalSecs)} 🗺️ Someone's building better weekends for young grads in Delhi-NCR. Takes a minute, beat my time 👀 ${shareLink()}?r=${MY_REF}`;
 }
 
 function afterEnd(s) {
