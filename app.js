@@ -58,8 +58,7 @@ const SAT = [
   { e: '📚', l: 'Learning something new', type: 'Curious Collector', line: 'Fourteen tabs open, every single one fascinating.', r: { e: '🧠', cp: '1f9e0', h: 'Curious mind.', s: 'The best kind' } }
 ];
 const CALL = [
-  { v: "Sure, let's talk", yes: true, r: { e: '🥳', cp: '1f973', h: 'Yay, you just made my day!', s: 'One last thing below' } },
-  { v: 'Maybe another time', r: { e: '🙏', cp: '1f64f', h: 'Fair, weekends are precious.', s: "I'll check in later" } },
+  { v: "Sure, let's talk", yes: true, r: { e: '🥳', cp: '1f973', h: 'Yay, you just made my day!', s: "I'm building better weekends for young grads in NCR. You'll help shape it 🛠️" } },
   { v: "I'll pass", r: { e: '🙌', cp: '1f64c', h: 'Totally fine.', s: 'Thanks for the minute you already gave 💛' } }
 ];
 const OTHER = 'Somewhere else ✍️';
@@ -78,7 +77,7 @@ const Q = {
   age: { n: 6, kind: 'choice', clock: true, q: 'And your age? 🎂', opts: Object.keys(AGE) },
   saturday: { n: 7, kind: 'tiles', clock: true, q: 'Be honest:\nyour ideal Saturday looks like… 😌', opts: [...SAT.map(s => s.l), SAT_OTHER] },
   call: { n: 8, kind: 'choice', q: 'Last real question:\ncan I borrow 10\u00A0minutes to hear about your weekends? 🎉', help: 'Just a phone call 📞 No sales, and we stop whenever you want.', opts: CALL.map(c => c.v) },
-  phone: { n: 9, kind: 'tel', q: 'Where can I reach you? 📱', help: 'Only for this one call. No spam, no WhatsApp groups 🤞', ac: 'tel', max: 20 }
+  phone: { n: 9, kind: 'tel', q: 'Where can I reach you? 📱', help: 'Only for this call. Only we see it. No spam 🤞', ac: 'tel', max: 20 }
 };
 const T = {
   empty: 'Type an answer to continue',
@@ -158,7 +157,7 @@ const event = name => post({ type: 'event', event: name, session_id: SESSION, re
 
 /* ───────── helpers ───────── */
 const area = s => (String(s).split(',')[0] || '').trim() || String(s).trim();
-const disp = s => { s = String(s).trim(); return s.charAt(0).toUpperCase() + s.slice(1); };
+const disp = s => String(s).trim().replace(/\s+/g, ' ').replace(/(^|[\s-])(\p{L})/gu, (m, a, c) => a + c.toUpperCase());  // "pratham kathi" → "Pratham Kathi"
 // Places: capitalise the first letter of every word ("sector 56, gurgaon" → "Sector 56, Gurgaon"); existing capitals stay (DLF, WFH)
 const CAPS = new Set(['wfh', 'dlf', 'ncr', 'mg', 'huda', 'dda', 'iffco', 'iit', 'du', 'gk', 'jnu', 'cp', 'nit', 'iiit', 'dtu', 'nsut', 'ip', 'sez', 'it', 'bkc', 'ggn', 'blr']);
 const placeCase = s => String(s).trim().replace(/\s+/g, ' ')
@@ -323,7 +322,8 @@ function viewQuestion(id) {
     const k = 'ABCDEFGHI'[i], pressed = o === sel;
     const em = tiles ? `<span class="te" aria-hidden="true">${SAT[i] ? SAT[i].e : '✍️'}</span>`
       : d.emo && view === 'main' ? `<span class="oe" aria-hidden="true">${d.emo[i]}</span>` : '';   // small emoji, label/data stay plain
-    return `<button type="button" class="opt${tiles ? ' tile' : ''}" data-v="${esc(o)}" data-k="${k}" aria-pressed="${pressed}"><span class="k" aria-hidden="true">${k}</span>${em}<span>${esc(o)}</span></button>`;
+    const tone = id === 'call' ? ((CALL.find(c => c.v === o) || {}).yes ? ' yes' : ' soft') : '';
+    return `<button type="button" class="opt${tiles ? ' tile' : ''}${tone}" data-v="${esc(o)}" data-k="${k}" aria-pressed="${pressed}"><span class="k" aria-hidden="true">${k}</span>${em}<span>${esc(o)}</span></button>`;
   };
   function renderList(animate) {
     const list = view === 'iit' ? IITS : d.opts;
@@ -579,6 +579,13 @@ function viewEnd() {
   const yes = !!(CALL.find(c => c.v === A.call) || {}).yes;
   const name = esc(disp(A.name));
   const gotPhone = yes && A.phone;
+  if (!yes) {
+    s.innerHTML = `
+    <div class="big">${emo('💛', '1f49b')}</div>
+    <h1 class="eh" tabindex="-1">Thanks, ${name}!</h1>
+    <p class="es">${esc(nice("That's a wrap. Hope your weekend's a good one 🌈"))}</p>`;
+    return s;
+  }
   s.innerHTML = `
     <div class="big">${emo('🎉', '1f389')}</div>
     <h1 class="eh" tabindex="-1"><span class="sec">${reduced() ? finalSecs : 0}</span> ${secWord(finalSecs)} on the clock, ${name}!&nbsp;🎉</h1>
@@ -611,6 +618,7 @@ function waText() {
 
 function afterEnd(s) {
   animoji(s);
+  if (!$('.sec', s)) { focusLater($('.eh', s)); return; }  // "I'll pass": thanks only
   // count-up
   const secEl = $('.sec', s);
   if (!reduced()) {

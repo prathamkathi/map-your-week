@@ -153,6 +153,12 @@ body[data-screen=welcome] .app{padding-bottom:max(20px,env(safe-area-inset-botto
 .opt:active{transform:scale(.97)}
 @media (hover:hover){.opt:hover{border-color:var(--line-strong)}}
 .opt[aria-pressed=true]{border-color:var(--accent);background:var(--tint)}
+.opt.yes{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;font-size:17px;min-height:64px;box-shadow:0 6px 18px -6px rgba(225,75,43,.55)}
+.opt.yes .k{border-color:rgba(255,255,255,.5);color:var(--accent-ink)}
+@media (hover:hover){.opt.yes:hover{border-color:var(--accent);filter:brightness(1.05)}}
+.opt.soft{background:transparent;border-color:transparent;color:var(--muted);font-weight:400;font-size:14px;min-height:44px;justify-content:center;padding:10px 16px}
+.opt.soft .k{display:none}
+@media (hover:hover){.opt.soft:hover{border-color:transparent;color:var(--ink)}}
 .oe{font-size:17px;line-height:1;margin-right:11px;opacity:.9;filter:saturate(.85)}
 .opt[aria-pressed=true] .oe{opacity:1;filter:none}
 .opt.pop{animation:press .34s var(--spring)}
