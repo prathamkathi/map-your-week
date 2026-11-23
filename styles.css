@@ -112,9 +112,7 @@ body[data-screen=end] .app{padding-bottom:calc(16px + env(safe-area-inset-bottom
 .wl mark{color:var(--ink);font-weight:700;background:linear-gradient(transparent 50%,rgba(225,75,43,.24) 50%,rgba(225,75,43,.24) 94%,transparent 94%);padding:0 3px;margin:0 -1px;border-radius:2px}
 .btn .rocket{display:inline-block;transition:transform .45s cubic-bezier(.55,0,.8,.2),opacity .4s ease .05s}
 .btn .rocket .om{width:30px;height:30px;margin:-6px 0}
-#wa .om,#wa2 .om{width:28px;height:28px;margin:-6px 0}
-.skip{background:none;border:0;padding:10px 6px;font:500 15px/1 var(--sans);color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-@media (hover:hover){.skip:hover{color:var(--ink)}}
+#wa .om{width:28px;height:28px;margin:-6px 0}
 .btn.launch{transform:scale(.98)}
 .btn.launch.launch .rocket{transform:translate3d(90px,-70px,0) rotate(12deg) scale(1.25);opacity:0}
 @media (hover:hover){.btn:hover .rocket{transform:translate3d(2px,-2px,0) rotate(-6deg)}}
@@ -202,7 +200,6 @@ body[data-screen=end] .app{padding-bottom:calc(16px + env(safe-area-inset-bottom
 .big .emo{display:block;line-height:1;white-space:nowrap}
 .emo-img,.emo-anim{width:1em;height:1em;display:block;line-height:1;text-align:center}
 .emo-anim svg{display:block;width:100%!important;height:100%!important}
-.emo[data-cp]{visibility:hidden}
 .om{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.2em;object-fit:contain;-webkit-user-drag:none;user-select:none}
 .big .om,.ph .om,.pin .om,.tile .te .om,.result .re .om{display:block;width:1em;height:1em;vertical-align:baseline}
 .pin .om{display:inline-block}
@@ -325,17 +322,4 @@ body[data-screen=end] .app{padding-bottom:calc(16px + env(safe-area-inset-bottom
   .build .tag{margin-bottom:14px}
   .build .b1{margin-bottom:14px}
   .end:has(.build) .share{margin-top:26px}
-}
-
-/* small phones (iPhone SE): tighten the "Sure" end page so both share buttons fit on the first screen */
-@media (max-height:739px){
-  .end .big:has(+ .eh.sm){font-size:38px;margin-bottom:6px}
-  .eh.sm ~ .es,.eh.sm ~ .es2{margin-top:4px}
-  .end:has(.build) .result{margin-top:12px;margin-bottom:14px;padding:10px 14px}
-  .end:has(.build) .result .re{font-size:36px}
-  .end:has(.build) .build{padding-top:14px}
-  .build .tag{margin-bottom:8px}
-  .build .b1{font-size:27px;margin-bottom:8px}
-  .end:has(.build) .share{margin-top:14px;gap:8px}
-  body[data-screen=end] .app{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
 }

@@ -51,11 +51,11 @@ const MY_REF = rand(6);
 
 /* ───────── copy (final) ───────── */
 const AGE = {
-  'Under 22': { e: '🔥', cp: '1f525', h: 'Garam khoon hai abhi toh!', s: 'The world better be ready 💪' },
+  '18–21': { e: '🔥', cp: '1f525', h: 'Garam khoon hai abhi toh!', s: 'The world better be ready 💪' },
   '22–24': { e: '🧑‍💼', cp: '1f9d1_200d_1f4bc',   // 🫡 gets cut off on some Apple emoji fonts
     h: 'The figuring-it-out years 🧭', s: 'Respect' },
   '25–26': { e: '😎', cp: '1f60e', h: 'The sweet spot ✨', s: 'You know the city, and the city knows you' },
-  '27–30': { e: '🌟', cp: '1f31f', h: 'Settled, sorted, and still up for something new.', s: 'Best combo 👌' },
+  '27–30': { e: '🌟', cp: '1f31f', h: 'Still up for something new.', s: 'Best combo 👌' },
   '31+': { e: '🤗', cp: '1f917', h: "Our crowd's on the younger side right now 🌱", s: "but good company has no age limit. Glad you're here" }
 };
 const SAT = [
@@ -71,10 +71,23 @@ const CALL = [
   { v: "I'll pass", r: { e: '🙌', cp: '1f64c', h: 'Totally fine.', s: 'Thanks for the minute you already gave 💛' } }
 ];
 const OTHER = 'Type your college ✍️';
-const OTHER_IIT = 'IIT';                                   // opens the IIT list
-const WHICH_ONE = ['NIT', 'IIIT', 'IIM'];                  // optional "Which one?" box with Skip
-const ANOTHER_IIT = 'Another IIT ✍️';
-const IITS = ['IIT Delhi', 'IIT Bombay', 'IIT Madras', 'IIT Kanpur', 'IIT Kharagpur', 'IIT Roorkee', 'IIT Guwahati', 'IIT (BHU) Varanasi', ANOTHER_IIT];
+// tapping a group opens its own list; "Another …" opens a type-in box (the group name is added in front if missing)
+const GROUPS = {
+  IIT: { label: 'Which IIT? 🎓', prefix: 'IIT', another: 'Another IIT ✍️',
+    list: ['IIT Delhi', 'IIT Bombay', 'IIT Madras', 'IIT Kanpur', 'IIT Kharagpur', 'IIT Roorkee', 'IIT Guwahati', 'IIT (BHU) Varanasi'] },
+  DU: { label: 'Which DU college? 🎓', prefix: '', another: 'Another DU college ✍️',
+    list: ['Hansraj', 'Miranda House', 'LSR', 'SRCC', 'Kirori Mal', 'Ramjas'] },
+  NIT: { label: 'Which NIT? 🎓', prefix: 'NIT', another: 'Another NIT ✍️',
+    list: ['NIT Trichy', 'NITK Surathkal', 'NIT Warangal', 'NIT Calicut', 'NIT Srinagar'] },
+  IIIT: { label: 'Which IIIT? 🎓', prefix: 'IIIT', another: 'Another IIIT ✍️',
+    list: ['IIIT Delhi', 'IIIT Hyderabad', 'IIIT Bangalore', 'IIIT Allahabad'] },
+  IIM: { label: 'Which IIM? 🎓', prefix: 'IIM', another: 'Another IIM ✍️',
+    list: ['IIM Ahmedabad', 'IIM Bangalore', 'IIM Calcutta', 'IIM Lucknow', 'IIM Kozhikode', 'IIM Indore'] },
+  BITS: { label: 'Which BITS campus? 🎓', prefix: 'BITS', another: null,          // only these four campuses
+    list: ['BITS Pilani', 'BITS Goa', 'BITS Hyderabad', 'BITS Dubai'] }
+};
+const listOf = g => GROUPS[g].another ? [...GROUPS[g].list, GROUPS[g].another] : GROUPS[g].list;
+const ANOTHERS = Object.values(GROUPS).map(g => g.another).filter(Boolean);
 const SAT_OTHER = 'Something else';
 const SAT_CUSTOM = { e: '✨', defaultType: 'Original Weekender', r: { e: '🤩', cp: '1f929', h: "Now that's a Saturday.", s: 'Your own thing. Love that' } };
 const ORDER = ['name', 'home', 'office', 'college', 'gender', 'age', 'saturday', 'call', 'phone'];
@@ -82,7 +95,7 @@ const Q = {
   name: { n: 1, kind: 'text', q: 'First things first:\nwhat should I call you? 🙋', ph: 'Your name', ac: 'name', max: 40, live: true, cap: 'words' },
   home: { n: 2, kind: 'text', q: 'Where are you living these days? 🏡', help: 'Sector or locality + city. Like Sector\u00A056, Gurgaon', ac: 'off', max: 80, cap: 'words' },
   office: { n: 3, kind: 'text', q: 'And where does the 9-to-5 (or\u00A09-to-9) happen? 💼', help: 'Office area + city. Or just type "WFH"', ac: 'off', max: 80, cap: 'words' },
-  college: { n: 4, kind: 'choice', clock: true, grid: true, q: 'Which college do you call yours? 🎓', help: 'Undergrad, Masters, wherever. Pick the one that feels most like yours.', opts: ['IIT', 'NIT', 'IIIT', 'BITS', 'IIM', 'DU', OTHER] },
+  college: { n: 4, kind: 'choice', clock: true, grid: true, q: 'Which college do you call yours? 🎓', help: 'Undergrad, Masters, wherever. Pick the one that feels most like yours.', opts: ['IIT', 'DU', 'NIT', 'IIIT', 'BITS', 'IIM', OTHER] },
   gender: { n: 5, kind: 'choice', clock: true, q: 'You are… 🙂', opts: ['Woman', 'Man', 'Non-binary', 'Prefer not to say'], emo: ['👩', '👨', '🧑', '🤐'] },
   age: { n: 6, kind: 'choice', clock: true, q: 'And your age? 🎂', opts: Object.keys(AGE) },
   saturday: { n: 7, kind: 'tiles', clock: true, q: 'Be honest:\nyour ideal Saturday looks like… 😌', opts: [...SAT.map(s => s.l), SAT_OTHER] },
@@ -101,7 +114,7 @@ const T = {
 };
 
 /* ───────── state ───────── */
-const A = { name: '', home: '', office: '', college: '', collegeGroup: '', collegeOther: '', collegeWhich: '', iitOther: '', satOther: '', satType: '', gender: '', age: '', saturday: '', call: '', phone: '' };
+const A = { name: '', home: '', office: '', college: '', collegeGroup: '', collegeOther: '', collegeWhich: '', satOther: '', satType: '', gender: '', age: '', saturday: '', call: '', phone: '' };
 const hist = ['welcome'];
 let cur = 'welcome';          // current question / screen id
 let inReaction = null;        // question id whose reaction is showing
@@ -172,7 +185,8 @@ const event = (name, detail = '') => post({ type: 'event', event: name, detail, 
 const area = s => (String(s).split(',')[0] || '').trim() || String(s).trim();
 const disp = s => String(s).trim().replace(/\s+/g, ' ').replace(/(^|[\s-])(\p{L})/gu, (m, a, c) => a + c.toUpperCase());  // "pratham kathi" → "Pratham Kathi"
 // Places: capitalise the first letter of every word ("sector 56, gurgaon" → "Sector 56, Gurgaon"); existing capitals stay (DLF, WFH)
-const CAPS = new Set(['wfh', 'dlf', 'ncr', 'mg', 'huda', 'dda', 'iffco', 'iit', 'du', 'gk', 'jnu', 'cp', 'nit', 'iiit', 'dtu', 'nsut', 'ip', 'sez', 'it', 'bkc', 'ggn', 'blr']);
+const CAPS = new Set(['wfh', 'dlf', 'ncr', 'mg', 'huda', 'dda', 'iffco', 'iit', 'du', 'gk', 'jnu', 'cp', 'nit', 'iiit', 'dtu', 'nsut', 'ip', 'sez', 'it', 'bkc', 'ggn', 'blr',
+  'iim', 'bits', 'nitk', 'iiitd', 'iisc', 'iiser', 'srcc', 'lsr', 'bhu', 'amu', 'jmi', 'ipu', 'ggsipu', 'nift', 'nid', 'isb', 'xlri', 'vit', 'srm', 'mit', 'nmims', 'isi', 'iiests', 'iift', 'fms', 'mdi', 'spa', 'aiims']);
 const placeCase = s => String(s).trim().replace(/\s+/g, ' ')
   .replace(/(^|[\s,\-\/(])(\p{Ll})/gu, (m, p, c) => p + c.toUpperCase())
   .replace(/\p{L}+/gu, w => CAPS.has(w.toLowerCase()) ? w.toUpperCase() : w);
@@ -267,6 +281,7 @@ function animoji(scope) {
     const p = loadEmoji(span.dataset.cp);
     const fallback = () => { if (span.dataset.cp) { delete span.dataset.cp; skin(span); } };
     if (!p) { fallback(); return; }
+    span.replaceChildren(omImg(span.getAttribute('aria-label') || span.textContent));   // static emoji right away, no blank wait
     const timer = setTimeout(fallback, 3000);
     Promise.all([p, lottieReady()]).then(([data, lottie]) => {
       clearTimeout(timer);
@@ -385,15 +400,18 @@ function viewQuestion(id) {
   let view = 'main', sel = A[id], panel = null;
   if (id === 'college' && A.college) {
     const g = A.collegeGroup;
-    if (g === 'IIT') { view = 'iit'; if (IITS.includes(A.college)) sel = A.college; else { sel = ANOTHER_IIT; panel = 'iit-other'; } }
-    else if (WHICH_ONE.includes(g)) { sel = g; panel = 'which'; }
+    if (GROUPS[g]) {
+      if (listOf(g).includes(A.college)) { view = g; sel = A.college; }
+      else if (GROUPS[g].another && A.college === A.collegeWhich) { view = g; sel = GROUPS[g].another; panel = 'another'; }
+      else sel = g;
+    }
     else if (g === 'Other') { sel = OTHER; panel = 'college-other'; }
     else sel = g;
   }
   if (id === 'saturday' && A.saturday && !d.opts.includes(A.saturday)) { sel = SAT_OTHER; panel = 'sat-other'; }
 
   s.innerHTML = head + `
-    ${id === 'college' ? `<p class="sublabel" id="subl" hidden>Which IIT? 🎓</p>` : ''}
+    ${id === 'college' ? `<p class="sublabel" id="subl" hidden></p>` : ''}
     <div class="${tiles ? 'tiles' : 'opts' + (d.grid ? ' grid' : '')}" role="group" aria-labelledby="qh" id="optbox"></div>
     <div class="panel" hidden></div>`;
   const box = $('#optbox', s), panelEl = $('.panel', s), subl = $('#subl', s);
@@ -406,10 +424,10 @@ function viewQuestion(id) {
     return `<button type="button" class="opt${tiles ? ' tile' : ''}${tone}" data-v="${esc(o)}" data-k="${k}" aria-pressed="${pressed}"><span class="k" aria-hidden="true">${k}</span>${em}<span>${esc(o)}</span></button>`;
   };
   function renderList(animate) {
-    const list = view === 'iit' ? IITS : d.opts;
+    const list = view === 'main' ? d.opts : listOf(view);
     box.innerHTML = list.map(optBtn).join('');
-    if (subl) subl.hidden = view !== 'iit';
-    box.setAttribute('aria-labelledby', view === 'iit' ? 'qh subl' : 'qh');
+    if (subl) { subl.hidden = view === 'main'; subl.textContent = view === 'main' ? '' : GROUPS[view].label; }
+    box.setAttribute('aria-labelledby', view === 'main' ? 'qh' : 'qh subl');
     if (animate) { box.classList.remove('swapin'); void box.offsetWidth; box.classList.add('swapin'); }
     box.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => pick(b)));
   }
@@ -423,7 +441,7 @@ function viewQuestion(id) {
   function openPanel(kind, focus = true) {
     panel = kind; otherOpen = true; syncClock();
     panelEl.innerHTML = kind === 'sat-other' ? satForm()
-      : textForm({ type: 'text', ph: kind === 'college-other' ? 'Tell me where 👇' : 'Which one? 👇', max: 60, cap: 'words', val: kind === 'iit-other' ? A.iitOther : kind === 'which' ? A.collegeWhich : A.collegeOther, label: 'qh', ac: 'off', skip: kind === 'which' });
+      : textForm({ type: 'text', ph: kind === 'college-other' ? 'Tell me where 👇' : 'Which one? 👇', max: 60, cap: 'words', val: kind === 'another' ? A.collegeWhich : A.collegeOther, label: 'qh', ac: 'off' });
     panelEl.hidden = false;
     panelEl.classList.remove('open'); void panelEl.offsetWidth; panelEl.classList.add('open');
     const form = $('form', panelEl), inputs = [...form.querySelectorAll('input')];
@@ -432,15 +450,13 @@ function viewQuestion(id) {
       e.preventDefault();
       if (locked) return;
       const v = inputs[0].value.trim();
-      if (!v && kind !== 'which') return fieldError(form, inputs[0], T.empty);
+      if (!v) return fieldError(form, inputs[0], T.empty);
       locked = true; inputs.forEach(i => i.blur());
-      if (kind === 'college-other') { A.collegeGroup = 'Other'; A.collegeOther = v; answer('college', v); }
-      else if (kind === 'iit-other') { const n = /\biit\b/i.test(v) ? v : 'IIT ' + v; A.collegeGroup = 'IIT'; A.iitOther = n; answer('college', n); }
-      else if (kind === 'which') { A.collegeGroup = sel; A.collegeWhich = v; answer('college', !v ? sel : new RegExp('\\b' + sel + '\\b', 'i').test(v) ? v : sel + ' ' + v); }
-      else { A.satOther = v; A.satType = inputs[1].value.trim(); answer('saturday', v); }
+      const pc = placeCase(v);   // "srinagar" → "Srinagar", "nitk" → "NITK"
+      if (kind === 'college-other') { A.collegeGroup = 'Other'; A.collegeOther = pc; answer('college', pc); }
+      else if (kind === 'another') { const p = GROUPS[view].prefix, n = !p || new RegExp('\\b' + p, 'i').test(pc) ? pc : p + ' ' + pc; A.collegeGroup = view; A.collegeWhich = n; answer('college', n); }
+      else { const v2 = v.charAt(0).toUpperCase() + v.slice(1); A.satOther = v2; A.satType = inputs[1].value.trim(); answer('saturday', v2); }
     });
-    const skip = $('.skip', form);
-    if (skip) skip.addEventListener('click', () => { inputs[0].value = ''; form.requestSubmit(); });
     if (focus) setTimeout(() => { inputs[0].focus({ preventScroll: true }); panelEl.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' }); }, 60);
   }
   function closePanel() { if (!panel) return; panel = null; otherOpen = false; panelEl.hidden = true; panelEl.innerHTML = ''; syncClock(); }
@@ -452,23 +468,22 @@ function viewQuestion(id) {
     b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
     sel = v;
     if (v === OTHER) return openPanel('college-other');
-    if (id === 'college' && view === 'main' && WHICH_ONE.includes(v)) return openPanel('which');
-    if (v === ANOTHER_IIT) return openPanel('iit-other');
+    if (ANOTHERS.includes(v)) return openPanel('another');
     if (v === SAT_OTHER) return openPanel('sat-other');
-    if (v === OTHER_IIT) {                       // swap to the IIT list; clock keeps ticking (still a tap)
+    if (id === 'college' && view === 'main' && GROUPS[v]) {   // swap to that group's list; clock keeps ticking (still a tap)
       closePanel();
-      setTimeout(() => { view = 'iit'; sel = null; renderList(true); }, reduced() ? 0 : 160);
+      setTimeout(() => { view = v; sel = null; renderList(true); }, reduced() ? 0 : 160);
       return;
     }
     closePanel();
-    if (id === 'college') A.collegeGroup = view === 'iit' ? 'IIT' : v;
+    if (id === 'college') A.collegeGroup = view === 'main' ? v : view;
     clock.stop();                                // the 250 ms hand-off never counts
     locked = true;
     const r = reactionFor(id, v); if (r && r.cp) loadEmoji(r.cp);
     setTimeout(() => answer(id, v), 250);
   }
   if (id === 'college') screenBack = () => {     // Back on the IIT list → all colleges
-    if (view !== 'iit' || locked) return false;
+    if (view === 'main' || locked) return false;
     closePanel(); view = 'main'; sel = null; renderList(true);
     return true;
   };
@@ -480,13 +495,13 @@ function viewQuestion(id) {
   return s;
 }
 
-function textForm({ type, ph, ac, max, cap, val, label, help, skip }) {
+function textForm({ type, ph, ac, max, cap, val, label, help }) {
   return `<form class="tform" novalidate>
       <input class="field" type="${type}" ${type === 'tel' ? 'inputmode="tel"' : ''} ${ph ? `placeholder="${esc(ph)}"` : ''}
         autocomplete="${ac || 'off'}" ${cap ? `autocapitalize="${cap}"` : ''} autocorrect="off" spellcheck="false" enterkeyhint="go"
         maxlength="${max}" value="${esc(val || '')}" aria-labelledby="${label}" ${help ? `aria-describedby="${help}"` : ''}>
       <p class="err" role="alert"></p>
-      <div class="row"><button class="go" type="submit" aria-label="Continue">${ICON_ARROW}</button>${skip ? '<button class="skip" type="button">Skip</button>' : '<span class="hint">or press <kbd>Enter ↵</kbd></span>'}</div>
+      <div class="row"><button class="go" type="submit" aria-label="Continue">${ICON_ARROW}</button><span class="hint">or press <kbd>Enter ↵</kbd></span></div>
     </form>`;
 }
 function fieldError(form, input, msg) {
@@ -499,16 +514,16 @@ function fieldError(form, input, msg) {
   input.addEventListener('input', clear);
 }
 function liveName(input, out) {
-  let t = 0;
-  const render = final => {
+  // "Hi Name 👋" shows from the first letter; the hand waves once, then only the name updates
+  let built = false;
+  const render = () => {
     const v = input.value.trim();
-    out.classList.remove('done');
-    if (!v) { out.textContent = ''; return; }
-    if (final) { out.innerHTML = `Hi ${esc(disp(v))} <span class="w">👋</span>`; void out.offsetWidth; out.classList.add('done'); }
-    else out.textContent = `Hi ${disp(v)}…`;
+    if (!v) { out.textContent = ''; out.classList.remove('done'); built = false; return; }
+    if (!built) { out.innerHTML = 'Hi <span class="nm"></span> <span class="w">👋</span>'; void out.offsetWidth; out.classList.add('done'); built = true; }
+    $('.nm', out).textContent = disp(v);
   };
-  input.addEventListener('input', () => { clearTimeout(t); render(false); t = setTimeout(() => render(true), 650); });
-  if (input.value.trim()) render(true);
+  input.addEventListener('input', render);
+  if (input.value.trim()) render();
 }
 
 /* ───────── answering + flow ───────── */
@@ -700,8 +715,7 @@ function viewEnd() {
     <div class="result"><span class="re" aria-hidden="true">${satOf().e}</span><div><p class="rt">${esc(satOf().type)}</p><p class="rl">${esc(nice(satOf().line))}</p></div></div>
     <div class="build"><p class="tag">${esc(nice("🛠️ What's next"))}</p><h2 class="b1">${esc("I'm building ")}<span class="ul">better weekends</span>${esc(nice(" for young grads in Delhi-NCR."))}</h2><p><span class="ln">${esc(nice("Every friend who fills this from your link helps shape it."))}</span><span class="ln">${esc(nice("Top sharers hear about it first."))}</span></p></div>
     <div class="share">
-      <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">${esc(nice('Share with your gang 👯'))}</a>
-      <a class="btn ghost" id="wa2" href="#" target="_blank" rel="noopener">${esc(nice('Or send to a friend 💬'))}</a>
+      <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">${esc(nice('Share it with your gang 👯'))}</a>
     </div>
     <section class="lb" id="lb" hidden></section>`;
   return s;
@@ -732,9 +746,6 @@ function afterEnd(s) {
   const wa = $('#wa', s);
   wa.href = 'https://wa.me/?text=' + encodeURIComponent(waGang());
   wa.addEventListener('click', () => event('share_click', 'gang'));
-  const wa2 = $('#wa2', s);
-  wa2.href = 'https://wa.me/?text=' + encodeURIComponent(waText());
-  wa2.addEventListener('click', () => event('share_click', 'friend'));
   // map-first
   const mf = $('#mapForm', s);
   if (mf) {
