@@ -53,7 +53,7 @@ const MY_REF = rand(6);
 const AGE = {
   'Under 22': { e: '🔥', cp: '1f525', h: 'Garam khoon hai abhi toh!', s: 'The world better be ready 💪' },
   '22–24': { e: '🧑‍💼', cp: '1f9d1_200d_1f4bc',   // 🫡 gets cut off on some Apple emoji fonts
-    h: 'Fresh out of college and already adulting.', s: 'Respect' },
+    h: 'The figuring-it-out years 🧭', s: 'Respect' },
   '25–26': { e: '😎', cp: '1f60e', h: 'The sweet spot ✨', s: 'You know the city, and the city knows you' },
   '27–30': { e: '🌟', cp: '1f31f', h: 'Settled, sorted, and still up for something new.', s: 'Best combo 👌' },
   '31+': { e: '🤗', cp: '1f917', h: "Our crowd's on the younger side right now 🌱", s: "but good company has no age limit. Glad you're here" }
@@ -70,18 +70,19 @@ const CALL = [
   { v: "Sure, let's talk", yes: true, r: { e: '🥳', cp: '1f973', h: 'Yay, you just made my day!', s: "I'm building better weekends for young grads in NCR. You'll help shape it 🛠️" } },
   { v: "I'll pass", r: { e: '🙌', cp: '1f64c', h: 'Totally fine.', s: 'Thanks for the minute you already gave 💛' } }
 ];
-const OTHER = 'Somewhere else ✍️';
-const OTHER_IIT = 'Other IIT';
+const OTHER = 'Type your college ✍️';
+const OTHER_IIT = 'IIT';                                   // opens the IIT list
+const WHICH_ONE = ['NIT', 'IIIT', 'IIM'];                  // optional "Which one?" box with Skip
 const ANOTHER_IIT = 'Another IIT ✍️';
-const IITS = ['IIT Bombay', 'IIT Madras', 'IIT Kanpur', 'IIT Kharagpur', 'IIT Roorkee', 'IIT Guwahati', 'IIT (BHU) Varanasi', ANOTHER_IIT];
+const IITS = ['IIT Delhi', 'IIT Bombay', 'IIT Madras', 'IIT Kanpur', 'IIT Kharagpur', 'IIT Roorkee', 'IIT Guwahati', 'IIT (BHU) Varanasi', ANOTHER_IIT];
 const SAT_OTHER = 'Something else';
 const SAT_CUSTOM = { e: '✨', defaultType: 'Original Weekender', r: { e: '🤩', cp: '1f929', h: "Now that's a Saturday.", s: 'Your own thing. Love that' } };
 const ORDER = ['name', 'home', 'office', 'college', 'gender', 'age', 'saturday', 'call', 'phone'];
 const Q = {
   name: { n: 1, kind: 'text', q: 'First things first:\nwhat should I call you? 🙋', ph: 'Your name', ac: 'name', max: 40, live: true, cap: 'words' },
-  home: { n: 2, kind: 'text', q: 'Which area do you call home? 🏡', help: 'Sector or locality + city. Like Sector\u00A056, Gurgaon', ac: 'off', max: 80, cap: 'words' },
+  home: { n: 2, kind: 'text', q: 'Where are you living these days? 🏡', help: 'Sector or locality + city. Like Sector\u00A056, Gurgaon', ac: 'off', max: 80, cap: 'words' },
   office: { n: 3, kind: 'text', q: 'And where does the 9-to-5 (or\u00A09-to-9) happen? 💼', help: 'Office area + city. Or just type "WFH"', ac: 'off', max: 80, cap: 'words' },
-  college: { n: 4, kind: 'choice', clock: true, grid: true, q: 'Where did you do your undergrad? 🎓', opts: ['IIT Delhi', 'Other IIT', 'DU', 'DTU', 'NSUT', 'IIIT Delhi', OTHER] },
+  college: { n: 4, kind: 'choice', clock: true, grid: true, q: 'Which college do you call yours? 🎓', help: 'Undergrad, Masters, wherever. Pick the one that feels most like yours.', opts: ['IIT', 'NIT', 'IIIT', 'BITS', 'IIM', 'DU', OTHER] },
   gender: { n: 5, kind: 'choice', clock: true, q: 'You are… 🙂', opts: ['Woman', 'Man', 'Non-binary', 'Prefer not to say'], emo: ['👩', '👨', '🧑', '🤐'] },
   age: { n: 6, kind: 'choice', clock: true, q: 'And your age? 🎂', opts: Object.keys(AGE) },
   saturday: { n: 7, kind: 'tiles', clock: true, q: 'Be honest:\nyour ideal Saturday looks like… 😌', opts: [...SAT.map(s => s.l), SAT_OTHER] },
@@ -100,7 +101,7 @@ const T = {
 };
 
 /* ───────── state ───────── */
-const A = { name: '', home: '', office: '', college: '', collegeOther: '', iitOther: '', satOther: '', satType: '', gender: '', age: '', saturday: '', call: '', phone: '' };
+const A = { name: '', home: '', office: '', college: '', collegeGroup: '', collegeOther: '', collegeWhich: '', iitOther: '', satOther: '', satType: '', gender: '', age: '', saturday: '', call: '', phone: '' };
 const hist = ['welcome'];
 let cur = 'welcome';          // current question / screen id
 let inReaction = null;        // question id whose reaction is showing
@@ -165,7 +166,7 @@ function device() {
   return `${os} ${br}${inApp}`;
 }
 const DEVICE = device();
-const event = name => post({ type: 'event', event: name, session_id: SESSION, referred_by_code: REF_BY, device: DEVICE, source: SOURCE, timestamp: new Date().toISOString() });
+const event = (name, detail = '') => post({ type: 'event', event: name, detail, session_id: SESSION, referred_by_code: REF_BY, device: DEVICE, source: SOURCE, timestamp: new Date().toISOString() });
 
 /* ───────── helpers ───────── */
 const area = s => (String(s).split(',')[0] || '').trim() || String(s).trim();
@@ -383,10 +384,11 @@ function viewQuestion(id) {
   // work out what to show if we came back to this screen
   let view = 'main', sel = A[id], panel = null;
   if (id === 'college' && A.college) {
-    if (d.opts.includes(A.college)) sel = A.college;
-    else if (IITS.includes(A.college)) { view = 'iit'; sel = A.college; }
-    else if (A.college === A.iitOther) { view = 'iit'; sel = ANOTHER_IIT; panel = 'iit-other'; }
-    else { sel = OTHER; panel = 'college-other'; }
+    const g = A.collegeGroup;
+    if (g === 'IIT') { view = 'iit'; if (IITS.includes(A.college)) sel = A.college; else { sel = ANOTHER_IIT; panel = 'iit-other'; } }
+    else if (WHICH_ONE.includes(g)) { sel = g; panel = 'which'; }
+    else if (g === 'Other') { sel = OTHER; panel = 'college-other'; }
+    else sel = g;
   }
   if (id === 'saturday' && A.saturday && !d.opts.includes(A.saturday)) { sel = SAT_OTHER; panel = 'sat-other'; }
 
@@ -421,7 +423,7 @@ function viewQuestion(id) {
   function openPanel(kind, focus = true) {
     panel = kind; otherOpen = true; syncClock();
     panelEl.innerHTML = kind === 'sat-other' ? satForm()
-      : textForm({ type: 'text', ph: kind === 'iit-other' ? 'Which one? 👇' : 'Tell me where 👇', max: 60, cap: 'words', val: kind === 'iit-other' ? A.iitOther : A.collegeOther, label: 'qh', ac: 'off' });
+      : textForm({ type: 'text', ph: kind === 'college-other' ? 'Tell me where 👇' : 'Which one? 👇', max: 60, cap: 'words', val: kind === 'iit-other' ? A.iitOther : kind === 'which' ? A.collegeWhich : A.collegeOther, label: 'qh', ac: 'off', skip: kind === 'which' });
     panelEl.hidden = false;
     panelEl.classList.remove('open'); void panelEl.offsetWidth; panelEl.classList.add('open');
     const form = $('form', panelEl), inputs = [...form.querySelectorAll('input')];
@@ -430,12 +432,15 @@ function viewQuestion(id) {
       e.preventDefault();
       if (locked) return;
       const v = inputs[0].value.trim();
-      if (!v) return fieldError(form, inputs[0], T.empty);
+      if (!v && kind !== 'which') return fieldError(form, inputs[0], T.empty);
       locked = true; inputs.forEach(i => i.blur());
-      if (kind === 'college-other') { A.collegeOther = v; answer('college', v); }
-      else if (kind === 'iit-other') { const n = /\biit\b/i.test(v) ? v : 'IIT ' + v; A.iitOther = n; answer('college', n); }
+      if (kind === 'college-other') { A.collegeGroup = 'Other'; A.collegeOther = v; answer('college', v); }
+      else if (kind === 'iit-other') { const n = /\biit\b/i.test(v) ? v : 'IIT ' + v; A.collegeGroup = 'IIT'; A.iitOther = n; answer('college', n); }
+      else if (kind === 'which') { A.collegeGroup = sel; A.collegeWhich = v; answer('college', !v ? sel : new RegExp('\\b' + sel + '\\b', 'i').test(v) ? v : sel + ' ' + v); }
       else { A.satOther = v; A.satType = inputs[1].value.trim(); answer('saturday', v); }
     });
+    const skip = $('.skip', form);
+    if (skip) skip.addEventListener('click', () => { inputs[0].value = ''; form.requestSubmit(); });
     if (focus) setTimeout(() => { inputs[0].focus({ preventScroll: true }); panelEl.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' }); }, 60);
   }
   function closePanel() { if (!panel) return; panel = null; otherOpen = false; panelEl.hidden = true; panelEl.innerHTML = ''; syncClock(); }
@@ -447,6 +452,7 @@ function viewQuestion(id) {
     b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
     sel = v;
     if (v === OTHER) return openPanel('college-other');
+    if (id === 'college' && view === 'main' && WHICH_ONE.includes(v)) return openPanel('which');
     if (v === ANOTHER_IIT) return openPanel('iit-other');
     if (v === SAT_OTHER) return openPanel('sat-other');
     if (v === OTHER_IIT) {                       // swap to the IIT list; clock keeps ticking (still a tap)
@@ -455,6 +461,7 @@ function viewQuestion(id) {
       return;
     }
     closePanel();
+    if (id === 'college') A.collegeGroup = view === 'iit' ? 'IIT' : v;
     clock.stop();                                // the 250 ms hand-off never counts
     locked = true;
     const r = reactionFor(id, v); if (r && r.cp) loadEmoji(r.cp);
@@ -473,13 +480,13 @@ function viewQuestion(id) {
   return s;
 }
 
-function textForm({ type, ph, ac, max, cap, val, label, help }) {
+function textForm({ type, ph, ac, max, cap, val, label, help, skip }) {
   return `<form class="tform" novalidate>
       <input class="field" type="${type}" ${type === 'tel' ? 'inputmode="tel"' : ''} ${ph ? `placeholder="${esc(ph)}"` : ''}
         autocomplete="${ac || 'off'}" ${cap ? `autocapitalize="${cap}"` : ''} autocorrect="off" spellcheck="false" enterkeyhint="go"
         maxlength="${max}" value="${esc(val || '')}" aria-labelledby="${label}" ${help ? `aria-describedby="${help}"` : ''}>
       <p class="err" role="alert"></p>
-      <div class="row"><button class="go" type="submit" aria-label="Continue">${ICON_ARROW}</button><span class="hint">or press <kbd>Enter ↵</kbd></span></div>
+      <div class="row"><button class="go" type="submit" aria-label="Continue">${ICON_ARROW}</button>${skip ? '<button class="skip" type="button">Skip</button>' : '<span class="hint">or press <kbd>Enter ↵</kbd></span>'}</div>
     </form>`;
 }
 function fieldError(form, input, msg) {
@@ -663,7 +670,7 @@ function finish() {
   payload = {
     type: 'response',
     timestamp: new Date().toISOString(),
-    name: A.name, home: A.home, office: A.office, college: A.college,
+    name: A.name, home: A.home, office: A.office, college: A.college, college_group: A.collegeGroup,
     gender: A.gender, age: A.age, saturday: A.saturday, saturday_type: sat.type,
     call: A.call, phone: yes ? A.phone : '',
     seconds_on_clock: finalSecs, total_secs: startedAt ? Math.round((Date.now() - startedAt) / 1000) : '', source: SOURCE,
@@ -693,12 +700,14 @@ function viewEnd() {
     <div class="result"><span class="re" aria-hidden="true">${satOf().e}</span><div><p class="rt">${esc(satOf().type)}</p><p class="rl">${esc(nice(satOf().line))}</p></div></div>
     <div class="build"><p class="tag">${esc(nice("🛠️ What's next"))}</p><h2 class="b1">${esc("I'm building ")}<span class="ul">better weekends</span>${esc(nice(" for young grads in Delhi-NCR."))}</h2><p><span class="ln">${esc(nice("Every friend who fills this from your link helps shape it."))}</span><span class="ln">${esc(nice("Top sharers hear about it first."))}</span></p></div>
     <div class="share">
-      <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">${esc(nice('Bring your friends in 🗺️'))}</a>
+      <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">${esc(nice('Share with your gang 👯'))}</a>
+      <a class="btn ghost" id="wa2" href="#" target="_blank" rel="noopener">${esc(nice('Or send to a friend 💬'))}</a>
     </div>
     <section class="lb" id="lb" hidden></section>`;
   return s;
 }
 
+const waGang = () => `Hey all! Someone's mapping where young grads in Delhi-NCR live & work. Takes a minute 🗺️ ${shareLink()}?r=${MY_REF}`;
 function waText() {
   return `Mapped my week in ${finalSecs} ${secWord(finalSecs)} 🗺️ Someone's building better weekends for young grads in Delhi-NCR. Takes a minute, beat my time 👀 ${shareLink()}?r=${MY_REF}`;
 }
@@ -721,8 +730,11 @@ function afterEnd(s) {
   }
   // share
   const wa = $('#wa', s);
-  wa.href = 'https://wa.me/?text=' + encodeURIComponent(waText());
-  wa.addEventListener('click', () => event('share_click'));
+  wa.href = 'https://wa.me/?text=' + encodeURIComponent(waGang());
+  wa.addEventListener('click', () => event('share_click', 'gang'));
+  const wa2 = $('#wa2', s);
+  wa2.href = 'https://wa.me/?text=' + encodeURIComponent(waText());
+  wa2.addEventListener('click', () => event('share_click', 'friend'));
   // map-first
   const mf = $('#mapForm', s);
   if (mf) {
