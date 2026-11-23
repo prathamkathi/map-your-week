@@ -105,6 +105,7 @@ const Q = {
 const T = {
   empty: 'Type an answer to continue',
   ageNum: 'Just the number, like 23',
+  ageBand: b => `That's not ${b}. Fix the age or pick the right box`,
   short: "That number looks short. 10 digits, please",
   long: "That's a few digits too many. Just your 10-digit mobile number",
   phoneStart: 'Mobile numbers start with 6, 7, 8 or 9',
@@ -459,9 +460,9 @@ function viewQuestion(id) {
       if (!v) return fieldError(form, inputs[0], T.empty);
       if (kind === 'age-exact') {
         const n = parseInt(v, 10);
-        if (!(n >= 16 && n <= 99)) return fieldError(form, inputs[0], T.ageNum);
-        const band = ageBand(n);                 // the typed age decides the bracket if they don't match
-        box.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === band)));
+        if (!/^\d{2}$/.test(v) || n > 99) return fieldError(form, inputs[0], T.ageNum);
+        const band = sel;                        // the typed age must sit inside the box they tapped
+        if (n < 18 || ageBand(n) !== band) return fieldError(form, inputs[0], T.ageBand(band));
         locked = true; inputs[0].blur(); A.ageExact = n;
         const r = reactionFor('age', band); if (r && r.cp) loadEmoji(r.cp);
         clock.stop(); answer('age', band); return;
