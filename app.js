@@ -36,6 +36,15 @@ const rIn = (params.get('r') || '').trim().toUpperCase();
 if (/^[A-Z0-9]{4,10}$/.test(rIn) && !OWN_REFS.includes(rIn)) store.set('ref_by', rIn);
 const REF_BY = OWN_REFS.includes(store.get('ref_by') || '') ? '' : (store.get('ref_by') || '');
 const SESSION = rand(12);
+// where this visit came from: ?utm_source= / ?src= on the link, else a friend's link, else the site that sent them, else "direct"
+const SOURCE = (() => {
+  const tag = (params.get('utm_source') || params.get('src') || '').trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '').slice(0, 30);
+  if (tag) return tag;
+  if (REF_BY) return 'friend link';
+  try { const h = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; if (h && h !== location.hostname) return h; } catch (e) { /* ignore */ }
+  return 'direct';
+})();
+let startedAt = 0;   // wall-clock start, for real time taken (the on-screen clock pauses while typing)
 // A fresh code for every fill. Two people on one phone must never share a code,
 // because the Sheet updates the row that has the same code (that used to overwrite the first person).
 const MY_REF = rand(6);
@@ -156,7 +165,7 @@ function device() {
   return `${os} ${br}${inApp}`;
 }
 const DEVICE = device();
-const event = name => post({ type: 'event', event: name, session_id: SESSION, referred_by_code: REF_BY, device: DEVICE, timestamp: new Date().toISOString() });
+const event = name => post({ type: 'event', event: name, session_id: SESSION, referred_by_code: REF_BY, device: DEVICE, source: SOURCE, timestamp: new Date().toISOString() });
 
 /* ───────── helpers ───────── */
 const area = s => (String(s).split(',')[0] || '').trim() || String(s).trim();
@@ -328,7 +337,7 @@ function viewWelcome() {
   const startBtn = $('#start', s);
   startBtn.addEventListener('click', () => {
     if (startBtn.classList.contains('launch')) return;
-    if (!stepsSent.has(0)) { stepsSent.add(0); event('start'); }
+    if (!stepsSent.has(0)) { stepsSent.add(0); event('start'); startedAt = Date.now(); }
     warmUp();
     startBtn.classList.add('launch');                       // rocket takes off, then the first question
     setTimeout(() => { hist.push('name'); go('name'); }, reduced() ? 0 : 420);
@@ -657,7 +666,7 @@ function finish() {
     name: A.name, home: A.home, office: A.office, college: A.college,
     gender: A.gender, age: A.age, saturday: A.saturday, saturday_type: sat.type,
     call: A.call, phone: yes ? A.phone : '',
-    seconds_on_clock: finalSecs,
+    seconds_on_clock: finalSecs, total_secs: startedAt ? Math.round((Date.now() - startedAt) / 1000) : '', source: SOURCE,
     my_ref_code: MY_REF, referred_by_code: REF_BY,
     map_contact: mapContact, device: DEVICE, session_id: SESSION
   };
@@ -713,6 +722,7 @@ function afterEnd(s) {
   // share
   const wa = $('#wa', s);
   wa.href = 'https://wa.me/?text=' + encodeURIComponent(waText());
+  wa.addEventListener('click', () => event('share_click'));
   // map-first
   const mf = $('#mapForm', s);
   if (mf) {

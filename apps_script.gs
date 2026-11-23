@@ -11,12 +11,13 @@
 
 const RESPONSE_HEADERS = [
   'timestamp', 'name', 'home', 'office', 'college', 'gender', 'age', 'saturday', 'saturday_type',
-  'call', 'phone', 'seconds_on_clock', 'my_ref_code', 'referred_by_code', 'map_contact', 'device', 'session_id', 'test'
+  'call', 'phone', 'seconds_on_clock', 'my_ref_code', 'referred_by_code', 'map_contact', 'device', 'session_id', 'test',
+  'source', 'total_secs'   // added 23 Nov: where they came from, and real time taken (clock pauses while typing)
 ];
 // TEST_MODE = true  -> every new row is flagged "TEST" in the last column.
 // Set to false (and re-deploy) when real responses should start.
 const TEST_MODE = true;
-const EVENT_HEADERS = ['timestamp', 'session_id', 'event', 'referred_by_code', 'device', 'test'];
+const EVENT_HEADERS = ['timestamp', 'session_id', 'event', 'referred_by_code', 'device', 'test', 'source'];   // events: start, step_1…step_9, share_click
 
 /* ---------- receive data from the form ---------- */
 function doPost(e) {
@@ -71,7 +72,7 @@ function upsertResponse_(d) {
   const row = RESPONSE_HEADERS.map(function (h) {
     if (h === 'timestamp') return new Date();
     if (h === 'test') return TEST_MODE ? 'TEST' : '';
-    if (h === 'seconds_on_clock') return Number(d[h]) || '';
+    if (h === 'seconds_on_clock' || h === 'total_secs') return Number(d[h]) || '';
     return clean_(d[h]);
   });
   const r = findRowByRef_(sh, d.my_ref_code);
@@ -126,8 +127,8 @@ function ensureReferrals_() {
   );
   sh.getRange('C1').setValue('referrer_name');
   sh.getRange('C2').setFormula('=ARRAYFORMULA(IF(A2:A="",,IFERROR(VLOOKUP(A2:A,{Responses!' + myCol + ':' + myCol + ',Responses!B:B},2,FALSE),"")))');
-  sh.getRange('D1').setValue('sees_map_first (2+)');
-  sh.getRange('D2').setFormula('=ARRAYFORMULA(IF(A2:A="",,IF(B2:B>=2,"yes","")))');
+  sh.getRange('D1').setValue('rank');
+  sh.getRange('D2').setFormula('=ARRAYFORMULA(IF(A2:A="",,ROW(A2:A)-1))');
   sh.getRange('A1:D1').setFontWeight('bold');
   sh.setFrozenRows(1);
 }
