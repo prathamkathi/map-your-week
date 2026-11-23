@@ -74,7 +74,7 @@ body[data-screen=welcome] .app{padding-bottom:max(20px,env(safe-area-inset-botto
 .top.endmode .prog,.top.endmode .count{opacity:0;visibility:hidden}
 .top.endmode .back{display:none}   /* no Back on the end screen: it sat on top of the text */
 .top.endmode{display:none}   /* end screen: no header, content starts higher */
-body[data-screen=end] .app{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+body[data-screen=end] .app{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 
 .chipline{margin-top:14px;min-height:34px}
 .chip{display:inline-flex;align-items:center;gap:6px;font:500 13px/1 var(--sans);padding:9px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted);transition:background-color .3s,color .3s,border-color .3s}
@@ -245,19 +245,32 @@ body[data-screen=end] .app{padding-bottom:calc(28px + env(safe-area-inset-bottom
 
 /* ---------- end ---------- */
 .end{padding:6px 0 8px}
+/* "Sure" end screen: everything stays one tight block anchored to the bottom (button near the thumb);
+   on taller phones the spare space goes above the 🎉, not in the middle */
+.end:has(.build) .big{margin-top:auto}
+.end:has(.build) .build{margin-top:0}
+@media (min-height:740px){.end:has(.build) .build{margin-top:20px}}
+.end:has(.build) .result{margin-bottom:22px}
+.end:has(.build) .share{margin-top:18px}
 .end .big{font-size:64px;margin:0 0 12px;justify-content:flex-start}
+.end .big:has(+ .eh.sm){font-size:48px;margin-bottom:8px}
 .eh{font:500 34px/1.1 var(--display);letter-spacing:-.025em;margin:0;text-wrap:balance;font-variation-settings:"opsz" 40}
+.eh.sm{font-size:24px;line-height:1.15;letter-spacing:-.015em}
+.eh.sm ~ .es,.eh.sm ~ .es2{font-size:14.5px;margin-top:6px}
 .eh .sec{color:var(--accent);font-variant-numeric:tabular-nums}
 .es{color:var(--muted);font-size:16px;line-height:1.45;margin:12px 0 0;text-wrap:balance}
 .es2{font-size:16px;line-height:1.45;margin:10px 0 0;text-wrap:balance}
-.result{margin-top:20px;display:flex;align-items:center;gap:16px;padding:18px;border-radius:18px;background:var(--surface);border:1px solid var(--line);animation:fadeUp .6s var(--ease) .5s both}
-.result .re{font-size:48px;line-height:1;flex:none}
-.result .rt{margin:0;font:500 24px/1.15 var(--display);letter-spacing:-.01em;font-variation-settings:"opsz" 40}
+.result{margin-top:16px;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line);animation:fadeUp .6s var(--ease) .5s both}
+.result .re{font-size:40px;line-height:1;flex:none}
+.result .rt{margin:0;font:500 20px/1.15 var(--display);letter-spacing:-.01em;font-variation-settings:"opsz" 40}
 .result .rl{margin:6px 0 0;font-size:14.5px;line-height:1.4;color:var(--muted);text-wrap:balance}
-.build{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--tint);animation:fadeUp .6s var(--ease) .65s both}
+.build{margin-top:22px;padding-top:20px;border-top:1px solid var(--line);animation:fadeUp .6s var(--ease) .65s both}
+.build .tag{font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);margin:0 0 10px}
+.build .tag .om{width:16px;height:16px;vertical-align:-.25em;margin-right:2px}
+.build .ul{background:linear-gradient(transparent 62%,rgba(225,75,43,.22) 62%,rgba(225,75,43,.22) 92%,transparent 92%);padding:0 2px;margin:0 -2px}
 .build p{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink);text-wrap:pretty}
 .build .ln{display:block;text-wrap:balance}
-.build .b1{font-weight:600;margin-bottom:6px;text-wrap:balance}
+.build .b1{font:500 30px/1.1 var(--display);letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance;font-variation-settings:"opsz" 40}
 .share{display:grid;gap:10px;margin-top:18px}
 .share .btn{min-height:56px}
 .lb{margin-top:28px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
@@ -275,7 +288,6 @@ body[data-screen=end] .app{padding-bottom:calc(28px + env(safe-area-inset-bottom
 .mapf .help{font-size:13.5px;margin-top:6px}
 .mapf .field{font-size:19px}
 .mapf .ok{margin-top:14px;font-weight:600}
-.madad{font-size:14px;line-height:1.5;color:var(--muted);margin:20px 0 0;text-wrap:balance}
 .inl{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.18em}
 
 /* ---------- reduced motion: fades only ---------- */
@@ -298,3 +310,17 @@ body[data-screen=end] .app{padding-bottom:calc(28px + env(safe-area-inset-bottom
   .opt.pop,.tile.pop .te,.chip.swap,.live.done .w,.shake{animation:none!important}
 }
 
+/* taller phones (most phones except iPhone SE): top half a bit bigger, bottom block a bit airier */
+@media (min-height:740px){
+  .end .big:has(+ .eh.sm){font-size:58px;margin-bottom:12px}
+  .eh.sm{font-size:29px}
+  .eh.sm ~ .es,.eh.sm ~ .es2{font-size:15.5px;margin-top:10px}
+  .end:has(.build) .result{margin-top:20px;padding:16px 18px;gap:16px}
+  .end:has(.build) .result .re{font-size:46px}
+  .end:has(.build) .result .rt{font-size:22px}
+  .end:has(.build) .result .rl{font-size:15px}
+  .end:has(.build) .build{padding-top:24px}
+  .build .tag{margin-bottom:14px}
+  .build .b1{margin-bottom:14px}
+  .end:has(.build) .share{margin-top:26px}
+}

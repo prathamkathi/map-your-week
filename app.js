@@ -678,16 +678,15 @@ function viewEnd() {
   }
   s.innerHTML = `
     <div class="big">${emo('🎉', '1f389')}</div>
-    <h1 class="eh" tabindex="-1"><span class="sec">${reduced() ? finalSecs : 0}</span> ${secWord(finalSecs)} on the clock, ${name}!&nbsp;🎉</h1>
+    <h1 class="eh sm" tabindex="-1"><span class="sec">${reduced() ? finalSecs : 0}</span> ${secWord(finalSecs)} on the clock, ${name}!&nbsp;🎉</h1>
     <p class="es">${esc(nice("Faster than a Gurgaon signal 🚦"))}<br>${esc(nice("(we paused it while you typed)"))}</p>
     <p class="es2">${esc(nice(yes ? "I'll text you soon to find a time that suits you 🗓️" : "That's a wrap. Hope your weekend's a good one 🌈"))}</p>
     <div class="result"><span class="re" aria-hidden="true">${satOf().e}</span><div><p class="rt">${esc(satOf().type)}</p><p class="rl">${esc(nice(satOf().line))}</p></div></div>
-    <div class="build"><p class="b1">${esc(nice("I'm building better weekends for young grads in Delhi-NCR 🛠️"))}</p><p><span class="ln">${esc(nice("Every friend who fills this from your link helps shape it."))}</span><span class="ln">${esc(nice("Top sharers hear about it first."))}</span></p></div>
+    <div class="build"><p class="tag">${esc(nice("🛠️ What's next"))}</p><h2 class="b1">${esc("I'm building ")}<span class="ul">better weekends</span>${esc(nice(" for young grads in Delhi-NCR."))}</h2><p><span class="ln">${esc(nice("Every friend who fills this from your link helps shape it."))}</span><span class="ln">${esc(nice("Top sharers hear about it first."))}</span></p></div>
     <div class="share">
       <a class="btn accent" id="wa" href="#" target="_blank" rel="noopener">${esc(nice('Bring your friends in 🗺️'))}</a>
     </div>
-    <section class="lb" id="lb" hidden></section>
-    <p class="madad">${esc(nice("Know someone new to Gurgaon?"))}<br>${esc(nice("Send it their way."))}<br>${esc(nice("It might help them find their people 🤝"))}</p>`;
+    <section class="lb" id="lb" hidden></section>`;
   return s;
 }
 
