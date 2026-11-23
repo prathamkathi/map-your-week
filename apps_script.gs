@@ -13,7 +13,8 @@ const RESPONSE_HEADERS = [
   'timestamp', 'name', 'home', 'office', 'college', 'gender', 'age', 'saturday', 'saturday_type',
   'call', 'phone', 'seconds_on_clock', 'my_ref_code', 'referred_by_code', 'map_contact', 'device', 'session_id',
   'source', 'total_secs',   // where they came from, and real time taken (the on-screen clock pauses while typing)
-  'college_group'           // the tapped button: IIT, NIT, IIIT, BITS, IIM, DU or Other
+  'college_group',          // the tapped button: IIT, DU, NIT, IIIT, BITS, IIM or Other
+  'age_exact'               // the typed age (the bracket is in 'age')
 ];
 // events: start, step_1…step_9, share_click (detail = gang / friend)
 const EVENT_HEADERS = ['timestamp', 'session_id', 'event', 'referred_by_code', 'device', 'source', 'detail'];

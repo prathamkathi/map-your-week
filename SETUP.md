@@ -1,6 +1,6 @@
 # Connecting the form to a Google Sheet
 
-Right now the form sends nothing (`SCRIPT_URL = ""` in `config.js`). Every finished answer is still saved in the person's own browser as a backup (localStorage key `mapweek:last`). When you're ready to collect answers:
+The form is live and sends every answer to the Google Sheet through the Apps Script web app (`SCRIPT_URL` in `config.js`). Each finished answer is also kept in the person's own browser as a backup (localStorage key `mapweek:last`). To set it up from scratch:
 
 1. **Make the sheet.** Open a new Google Sheet (sheets.new) with the account that should own the data, and give it a name, e.g. "Map your week – responses".
 
@@ -17,4 +17,7 @@ Right now the form sends nothing (`SCRIPT_URL = ""` in `config.js`). Every finis
 - **College leaderboard:** when Pratham gives the signal, set `LEADERBOARD = true` in `config.js`. The end screen then reads college counts from the same web app (counts only, never names or numbers). If the call fails, the block just stays hidden.
 - **Changed the script?** Use **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**. This keeps the same URL.
 - **Referrals tab:** `referred_by_code` counts responses that came from each person's link, `referrer_name` shows who owns that code, and `sees_map_first` says "yes" at 2 or more.
-- **Map contacts:** if someone adds a WhatsApp number on the end screen, it lands in the `map_contact` column of their row (matched by their `my_ref_code`).
+- **Columns (match the Sheet to these, in this order):**
+  - Responses: timestamp, name, home, office, college, gender, age, saturday, saturday_type, call, phone, seconds_on_clock, my_ref_code, referred_by_code, map_contact, device, session_id, source, total_secs, college_group, age_exact
+  - Events: timestamp, session_id, event, referred_by_code, device, source, detail. Events are start, step_1…step_9, and share_click (detail = gang).
+  - `map_contact` is no longer filled; the end-screen number box was removed. The column stays so old rows line up.

@@ -104,6 +104,7 @@ const Q = {
 };
 const T = {
   empty: 'Type an answer to continue',
+  ageNum: 'Just the number, like 23',
   short: "That number looks short. 10 digits, please",
   long: "That's a few digits too many. Just your 10-digit mobile number",
   phoneStart: 'Mobile numbers start with 6, 7, 8 or 9',
@@ -114,7 +115,7 @@ const T = {
 };
 
 /* ───────── state ───────── */
-const A = { name: '', home: '', office: '', college: '', collegeGroup: '', collegeOther: '', collegeWhich: '', satOther: '', satType: '', gender: '', age: '', saturday: '', call: '', phone: '' };
+const A = { name: '', home: '', office: '', college: '', collegeGroup: '', collegeOther: '', collegeWhich: '', satOther: '', satType: '', ageExact: '', gender: '', age: '', saturday: '', call: '', phone: '' };
 const hist = ['welcome'];
 let cur = 'welcome';          // current question / screen id
 let inReaction = null;        // question id whose reaction is showing
@@ -190,6 +191,7 @@ const CAPS = new Set(['wfh', 'dlf', 'ncr', 'mg', 'huda', 'dda', 'iffco', 'iit', 
 const placeCase = s => String(s).trim().replace(/\s+/g, ' ')
   .replace(/(^|[\s,\-\/(])(\p{Ll})/gu, (m, p, c) => p + c.toUpperCase())
   .replace(/\p{L}+/gu, w => CAPS.has(w.toLowerCase()) ? w.toUpperCase() : w);
+const ageBand = n => n <= 21 ? '18–21' : n <= 24 ? '22–24' : n <= 26 ? '25–26' : n <= 30 ? '27–30' : '31+';
 const isWFH = s => /\b(wfh|remote(ly)?|work(ing)?\s*from\s*home|from\s*home|home\s*office)\b/i.test(s);
 const digits = s => (String(s).match(/\d/g) || []).length;
 /* phone: Indian mobile (10 digits, starts 6–9; +91 / 91 / 0 in front is fine). A number with another + country code is allowed too. */
@@ -409,6 +411,7 @@ function viewQuestion(id) {
     else sel = g;
   }
   if (id === 'saturday' && A.saturday && !d.opts.includes(A.saturday)) { sel = SAT_OTHER; panel = 'sat-other'; }
+  if (id === 'age' && A.age) panel = 'age-exact';
 
   s.innerHTML = head + `
     ${id === 'college' ? `<p class="sublabel" id="subl" hidden></p>` : ''}
@@ -439,18 +442,30 @@ function viewQuestion(id) {
       <div class="row"><button class="go" type="submit" aria-label="Continue">${ICON_ARROW}</button><span class="hint">or press <kbd>Enter ↵</kbd></span></div>
     </form>`;
   function openPanel(kind, focus = true) {
+    const prevAge = panel === 'age-exact' && $('input', panelEl) ? $('input', panelEl).value : A.ageExact;
     panel = kind; otherOpen = true; syncClock();
     panelEl.innerHTML = kind === 'sat-other' ? satForm()
+      : kind === 'age-exact' ? textForm({ type: 'text', ph: 'Your exact age 👇', max: 2, val: prevAge, label: 'qh', ac: 'off' })
       : textForm({ type: 'text', ph: kind === 'college-other' ? 'Tell me where 👇' : 'Which one? 👇', max: 60, cap: 'words', val: kind === 'another' ? A.collegeWhich : A.collegeOther, label: 'qh', ac: 'off' });
     panelEl.hidden = false;
     panelEl.classList.remove('open'); void panelEl.offsetWidth; panelEl.classList.add('open');
     const form = $('form', panelEl), inputs = [...form.querySelectorAll('input')];
+    if (kind === 'age-exact') { inputs[0].inputMode = 'numeric'; inputs[0].addEventListener('input', () => { inputs[0].value = inputs[0].value.replace(/\D/g, '').slice(0, 2); }); }
     if (inputs[1]) inputs[0].addEventListener('keydown', e => { if (e.key === 'Enter' && inputs[0].value.trim()) { e.preventDefault(); inputs[1].focus(); } });
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (locked) return;
       const v = inputs[0].value.trim();
       if (!v) return fieldError(form, inputs[0], T.empty);
+      if (kind === 'age-exact') {
+        const n = parseInt(v, 10);
+        if (!(n >= 16 && n <= 99)) return fieldError(form, inputs[0], T.ageNum);
+        const band = ageBand(n);                 // the typed age decides the bracket if they don't match
+        box.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === band)));
+        locked = true; inputs[0].blur(); A.ageExact = n;
+        const r = reactionFor('age', band); if (r && r.cp) loadEmoji(r.cp);
+        clock.stop(); answer('age', band); return;
+      }
       locked = true; inputs.forEach(i => i.blur());
       const pc = placeCase(v);   // "srinagar" → "Srinagar", "nitk" → "NITK"
       if (kind === 'college-other') { A.collegeGroup = 'Other'; A.collegeOther = pc; answer('college', pc); }
@@ -470,6 +485,7 @@ function viewQuestion(id) {
     if (v === OTHER) return openPanel('college-other');
     if (ANOTHERS.includes(v)) return openPanel('another');
     if (v === SAT_OTHER) return openPanel('sat-other');
+    if (id === 'age') return openPanel('age-exact');
     if (id === 'college' && view === 'main' && GROUPS[v]) {   // swap to that group's list; clock keeps ticking (still a tap)
       closePanel();
       setTimeout(() => { view = v; sel = null; renderList(true); }, reduced() ? 0 : 160);
@@ -686,7 +702,7 @@ function finish() {
     type: 'response',
     timestamp: new Date().toISOString(),
     name: A.name, home: A.home, office: A.office, college: A.college, college_group: A.collegeGroup,
-    gender: A.gender, age: A.age, saturday: A.saturday, saturday_type: sat.type,
+    gender: A.gender, age: A.age, age_exact: A.ageExact, saturday: A.saturday, saturday_type: sat.type,
     call: A.call, phone: yes ? A.phone : '',
     seconds_on_clock: finalSecs, total_secs: startedAt ? Math.round((Date.now() - startedAt) / 1000) : '', source: SOURCE,
     my_ref_code: MY_REF, referred_by_code: REF_BY,
